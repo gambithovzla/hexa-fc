@@ -11,7 +11,7 @@
 const ODDS_API_BASE = 'https://api.the-odds-api.com/v4';
 const CACHE_TTL_MS  = 60 * 60 * 1000; // 60 minutes
 
-let _cache = { data: null, ts: 0 };
+let _cache = new Map();
 
 // ---------------------------------------------------------------------------
 // Spring Training detection + mock odds
@@ -50,13 +50,15 @@ function getMockOddsForGame(homeTeam, awayTeam) {
 // ---------------------------------------------------------------------------
 
 /**
- * Fetches MLB moneyline / run-line / totals odds from The Odds API.
+ * Fetches odds from The Odds API for the provided sport key.
  * Results are cached for 5 minutes to conserve API quota.
  *
+ * @param {string} sportKey
  * @returns {Promise<Array>} Array of normalized game odds objects
  */
-export async function getGameOdds() {
+export async function getGameOdds(sportKey = 'baseball_mlb') {
   const apiKey = process.env.ODDS_API_KEY;
+  const cached = _cache.get(sportKey);
 
   console.log('[odds-api] API key present:', apiKey ? `${apiKey.substring(0, 8)}...` : 'MISSING');
   console.log('[odds-api] Spring Training:', isSpringTraining());
@@ -66,14 +68,14 @@ export async function getGameOdds() {
     return [];
   }
 
-  if (_cache.data && Date.now() - _cache.ts < CACHE_TTL_MS) {
-    console.log('[odds-api] Returning cached data:', _cache.data.length, 'events');
-    return _cache.data;
+  if (cached?.data && Date.now() - cached.ts < CACHE_TTL_MS) {
+    console.log('[odds-api] Returning cached data:', cached.data.length, 'events');
+    return cached.data;
   }
 
   try {
     const url =
-      `${ODDS_API_BASE}/sports/baseball_mlb/odds/?` +
+      `${ODDS_API_BASE}/sports/${sportKey}/odds/?` +
       `apiKey=${apiKey}&regions=us&markets=h2h,spreads,totals&oddsFormat=american&dateFormat=iso`;
 
     console.log('[odds-api] Fetching URL:', url.replace(apiKey, `${apiKey.substring(0, 8)}...`));
@@ -85,7 +87,7 @@ export async function getGameOdds() {
       const body = await res.text().catch(() => '');
       console.warn(`[odds-api] API error ${res.status} — body: ${body.substring(0, 200)}`);
       console.warn('[odds-api] Note: The Odds API does not list Spring Training games. Returning cached data.');
-      return _cache.data ?? [];
+      return cached?.data ?? [];
     }
 
     const raw  = await res.json();
@@ -97,11 +99,11 @@ export async function getGameOdds() {
 
     const data = (Array.isArray(raw) ? raw : []).map(normalizeEvent).filter(Boolean);
     console.log('[odds-api] Normalized events:', data.length);
-    _cache = { data, ts: Date.now() };
+    _cache.set(sportKey, { data, ts: Date.now() });
     return data;
   } catch (err) {
     console.error('[odds-api] fetch error:', err.message);
-    return _cache.data ?? [];
+    return cached?.data ?? [];
   }
 }
 
