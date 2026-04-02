@@ -40,13 +40,21 @@ export async function getTodayMatches(dateStr) {
       headers: {
         'x-apisports-key': apiKey,
       },
-      params: { date: dateStr },
+      params: {
+        date: dateStr,
+        season: 2025,
+      },
     });
+
+    if (response?.data?.errors && Object.keys(response.data.errors).length > 0) {
+      console.warn('[soccer-api] API reported issues:', response.data.errors);
+    }
 
     const matches = response?.data?.response ?? [];
     const allowedLeagueIds = Object.values(SUPPORTED_LEAGUES);
     const filteredMatches = matches.filter(match => allowedLeagueIds.includes(match?.league?.id));
 
+    console.log('Partidos encontrados en la API:', matches.length);
     return filteredMatches;
   } catch (error) {
     console.error('[soccer-api] getTodayMatches error:', error?.message ?? error);
