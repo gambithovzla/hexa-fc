@@ -14,7 +14,7 @@ import { getGameOdds } from './odds-api.js';
 // ---------------------------------------------------------------------------
 
 /**
- * Fetches current EURO FOOTBALL odds and stores a snapshot for every real game (non-mock).
+ * Fetches current football odds and stores a snapshot for every matched game.
  * Safe to call multiple times â€” each call inserts a new timestamped row.
  *
  * @returns {Promise<{ captured: number, games: string[] }>}
@@ -22,10 +22,7 @@ import { getGameOdds } from './odds-api.js';
 export async function captureOddsSnapshot() {
   const allOdds = await getGameOdds();
 
-  // Filter out Spring Training mock data
-  const realOdds = allOdds.filter(g => g.source !== 'estimated_spring_training');
-
-  if (!realOdds.length) {
+  if (!allOdds.length) {
     console.log('[line-movement] No real-odds games available â€” snapshot skipped');
     return { captured: 0, games: [] };
   }
@@ -33,7 +30,7 @@ export async function captureOddsSnapshot() {
   const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
   const captured = [];
 
-  for (const game of realOdds) {
+  for (const game of allOdds) {
     const { homeTeam, awayTeam, odds } = game;
     const { moneyline: ml, runLine: rl, overUnder: ou } = odds;
 

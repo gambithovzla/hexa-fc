@@ -7,7 +7,7 @@ import rateLimit from 'express-rate-limit';
 import { fileURLToPath } from 'url';
 import { buildMatchContext } from './context-builder.js';
 import { analyzeGame, analyzeParlay, analyzeSafe, analyzeChat } from './oracle.js';
-import { getGameOdds, matchOddsToGame, calculateImpliedProbability } from './odds-api.js';
+import { getOdds, getGameOdds, matchOddsToGame, calculateImpliedProbability } from './odds-api.js';
 import authRouter, { bankrollRouter, seedAdminUser } from './auth.js';
 import { verifyToken } from './middleware/auth-middleware.js';
 import { runMigrations } from './migrate.js';
@@ -17,7 +17,6 @@ import picksRouter from './routes/picks.js';
 import { handleBMCWebhook } from './bmc-webhook.js';
 import { resolvePendingPicks } from './pick-resolver.js';
 import { captureClosingLines } from './closing-line-capture.js';
-import { parseLivePick, calculatePickProgress } from './pick-tracker.js';
 import { captureOddsSnapshot, getLineMovement } from './line-movement.js';
 import { getTodayMatches, getMatchById, SUPPORTED_LEAGUES, ODDS_API_MAP } from './soccer-api.js';
 
@@ -194,7 +193,8 @@ app.get('/api/matches', async (req, res) => {
 // GET /api/odds/today
 app.get('/api/odds/today', async (req, res) => {
   try {
-    const odds = await getGameOdds();
+    const leagueId = Number(req.query.leagueId);
+    const odds = await getOdds(Number.isFinite(leagueId) ? leagueId : null);
     res.json({ success: true, data: odds });
   } catch (err) {
     res.status(500).json({ success: false, error: safeError(err) });
@@ -247,13 +247,8 @@ app.post('/api/analyze/game', analysisLimiter, verifyToken, async (req, res) => 
 
     if (sportKey) {
       try {
-        const allOdds = await getGameOdds(sportKey);
-        const homeTeamName = String(match?.teams?.home?.name ?? '').toLowerCase();
-
-        matchedOdds = allOdds.find((event) => {
-          const eventHomeName = String(event?.homeTeam ?? '').toLowerCase();
-          return eventHomeName.includes(homeTeamName) || homeTeamName.includes(eventHomeName);
-        }) || null;
+        const allOdds = await getOdds(leagueId);
+        matchedOdds = matchOddsToGame(allOdds, match?.teams?.home?.name, match?.teams?.away?.name);
       } catch (oddsError) {
         console.warn('[analyze/game] odds fetch failed:', oddsError?.message ?? oddsError);
       }
@@ -279,12 +274,10 @@ app.post('/api/analyze/game', analysisLimiter, verifyToken, async (req, res) => 
     let analysis;
     try {
       const matchup = `${match.teams?.away?.name ?? 'Away'} @ ${match.teams?.home?.name ?? 'Home'}`;
-      const statcastData = null;
 
       analysis = await analyzeGame({
         matchup, betType, context: prompt, riskProfile,
         mode: 'single', lang: resolvedLang, webSearch, model, timeoutMs: 90000,
-        statcastData,
         userBankroll,
         matchId: id,
       });

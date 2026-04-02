@@ -10,7 +10,6 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 import dotenv from 'dotenv';
-import { calculateParallelScore } from './services/xgboostValidator.js';
 
 dotenv.config();
 
@@ -353,8 +352,6 @@ function parseResponse(raw) {
  * @param {number}   [params.legs]          â€” nÃºmero de patas del parlay
  * @param {string}   [params.model]         â€” "fast" (Haiku) | "deep" (Sonnet)  (def. "fast")
  * @param {number}   [params.timeoutMs]     â€” abort oracle call after this many ms; throws Error('TIMEOUT')
- * @param {object}   [params.statcastData]  â€” datos Statcast estructurados para el validador XGBoost
- * @param {object}   [params.mlbApiData]    â€” datos del partido de la EURO FOOTBALL API (teams.home/away con id)
  *
  * @returns {Promise<{
  *   data:       object|null,
@@ -377,8 +374,6 @@ export async function analyzeGame(params) {
     legs,
     model        = 'deep',
     timeoutMs    = null,
-    statcastData = null,
-    mlbApiData   = null,
     userBankroll = null,
   } = params;
 
@@ -452,56 +447,13 @@ You are running in PREMIUM mode. The user paid extra for deeper football analysi
 
   const { data, parseError } = parseResponse(rawText);
 
-  // â”€â”€ XGBoost Validator: comparaciÃ³n paralela con el resultado del Oracle â”€â”€â”€â”€
-  // Solo se ejecuta en modo 'single' cuando hay datos disponibles para el validador.
-  // Si el validador falla, el Oracle devuelve su predicciÃ³n sin alteraciones.
-  let xgboostResult = null;
-  if (mode === 'single' && data && !parseError) {
-    try {
-      xgboostResult = calculateParallelScore(statcastData, mlbApiData);
-
-      // Determinar quÃ© equipo predice ganador la IA usando probability_model
-      const homeWins   = (data.probability_model?.home_wins ?? 5000) >= 5000;
-      const aiWinnerId = homeWins
-        ? String(mlbApiData?.teams?.home?.id ?? 'home')
-        : String(mlbApiData?.teams?.away?.id ?? 'away');
-
-      const validatorWinnerId = String(xgboostResult.predicted_winner);
-
-      // Si los dos modelos discrepan en el ganador predicho â†’ riesgo alto
-      const disagree = aiWinnerId !== validatorWinnerId;
-
-      if (disagree) {
-        console.log(
-          `[oracle] XGBoost divergence detected â€” AI: ${aiWinnerId} vs Validator: ${validatorWinnerId}. ` +
-          `Upgrading model_risk to "high".`
-        );
-        data.model_risk = 'high';
-
-        // Agregar alerta al array de alert_flags si existe
-        if (Array.isArray(data.alert_flags)) {
-          data.alert_flags.push(
-            `XGBoost validator disagrees with AI prediction â€” model_risk elevated to high`
-          );
-        }
-      }
-
-      console.log(
-        `[oracle] XGBoost result: score=${xgboostResult.score} | winner=${xgboostResult.predicted_winner_abbr} | conf=${xgboostResult.confidence} | disagree=${disagree}`
-      );
-    } catch (validatorErr) {
-      // El validador nunca debe interrumpir el flujo principal
-      console.warn('[oracle] XGBoost validator failed (non-critical):', validatorErr.message);
-    }
-  }
-
   return {
     data,
     rawText,
     parseError,
     stopReason:    message.stop_reason,
     usage:         message.usage,
-    xgboostResult,
+    xgboostResult: null,
   };
 }
 

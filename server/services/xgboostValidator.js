@@ -1,7 +1,8 @@
 /**
  * server/services/xgboostValidator.js
  *
- * Validador de ensamble tipo XGBoost para el Oracle H.E.X.A. V4.
+ * LEGACY MLB-only validator.
+ * Not used by the active football flow in server/oracle.js.
  *
  * Exporta:
  *   calculateParallelScore(statcastData, mlbApiData)

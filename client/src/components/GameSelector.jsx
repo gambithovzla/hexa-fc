@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Box, Checkbox, Skeleton, Typography } from '@mui/material';
-import { Football } from 'lucide-react';
+import { Trophy } from 'lucide-react';
 import { C, BARLOW, MONO, SANS } from '../theme';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const HISTORICAL_TEST_DATE = '2024-10-20';
 
 const L = {
   en: {
@@ -43,11 +44,11 @@ const L = {
 };
 
 function todayStr() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  if (import.meta.env.VITE_USE_HISTORICAL_MODE === 'true') {
+    return HISTORICAL_TEST_DATE;
+  }
+
+  return new Date().toISOString().split('T')[0];
 }
 
 function getMatchId(match) {
@@ -454,7 +455,7 @@ export default function GameSelector({
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-          <Football size={16} strokeWidth={2.2} color={C.accent} />
+          <Trophy size={16} strokeWidth={2.2} color={C.accent} />
           <Typography
             sx={{
               fontFamily: BARLOW,

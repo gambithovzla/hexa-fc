@@ -1,6 +1,7 @@
 ﻿/**
- * weather-api.js
- * Real-time weather data for EURO FOOTBALL stadiums via Open-Meteo (free, no API key required).
+ * weather-api.js — LEGACY weather enrichment module.
+ * Not used by the active football flow in server/index.js.
+ * Historical purpose: stadium weather context via Open-Meteo.
  */
 
 const _ANGELS   = { lat: 33.8003, lon: -117.8827, name: 'Angel Stadium' };
