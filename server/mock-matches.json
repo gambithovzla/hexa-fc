@@ -1,0 +1,48 @@
+[
+  {
+    "fixture": {
+      "id": 1,
+      "status": {
+        "long": "Not Started"
+      },
+      "date": "2026-04-02T20:00:00+00:00"
+    },
+    "teams": {
+      "home": {
+        "name": "Real Madrid",
+        "logo": "https://media.api-sports.io/football/teams/541.png"
+      },
+      "away": {
+        "name": "Manchester City",
+        "logo": "https://media.api-sports.io/football/teams/50.png"
+      }
+    },
+    "goals": {
+      "home": null,
+      "away": null
+    }
+  },
+  {
+    "fixture": {
+      "id": 2,
+      "status": {
+        "long": "Not Started"
+      },
+      "date": "2026-04-02T21:00:00+00:00"
+    },
+    "teams": {
+      "home": {
+        "name": "Barcelona",
+        "logo": "https://media.api-sports.io/football/teams/529.png"
+      },
+      "away": {
+        "name": "Paris Saint Germain",
+        "logo": "https://media.api-sports.io/football/teams/85.png"
+      }
+    },
+    "goals": {
+      "home": null,
+      "away": null
+    }
+  }
+]
