@@ -29,8 +29,13 @@ console.log('---------------------');
 
 // Temporary compatibility shims while other endpoints are migrated to football context.
 const buildContext = buildMatchContext;
-const buildContextById = async (_id) =>
-  buildMatchContext({ teams: { home: { name: 'Home Team' }, away: { name: 'Away Team' } } });
+const buildContextById = async (id) => {
+  const match = await getMatchById(id);
+  if (!match) {
+    throw new Error(`Match ${id} not found`);
+  }
+  return buildMatchContext(match);
+};
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url)); // eslint-disable-line no-unused-vars
 

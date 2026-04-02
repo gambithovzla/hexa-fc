@@ -1,4 +1,5 @@
 import axios from 'axios';
+import soccerProvider from './providers/soccer/index.js';
 
 const API_BASE_URL = 'https://v3.football.api-sports.io';
 
@@ -27,61 +28,21 @@ export const ODDS_API_MAP = {
   3: 'soccer_uefa_europa_league',
 };
 
+// Keep the public API stable while providers handle the data source details.
 export async function getTodayMatches(dateStr) {
-  try {
-    const apiKey = process.env.FOOTBALL_API_KEY;
-
-    if (!apiKey) {
-      console.error('[soccer-api] Missing FOOTBALL_API_KEY.');
-      return [];
-    }
-
-    const response = await axios.get(`${API_BASE_URL}/fixtures`, {
-      headers: {
-        'x-apisports-key': apiKey,
-      },
-      params: {
-        date: dateStr,
-        season: 2025,
-      },
-    });
-
-    if (response?.data?.errors && Object.keys(response.data.errors).length > 0) {
-      console.warn('[soccer-api] API reported issues:', response.data.errors);
-    }
-
-    const matches = response?.data?.response ?? [];
-    const allowedLeagueIds = Object.values(SUPPORTED_LEAGUES);
-    const filteredMatches = matches.filter(match => allowedLeagueIds.includes(match?.league?.id));
-
-    console.log('Partidos encontrados en la API:', matches.length);
-    return filteredMatches;
-  } catch (error) {
-    console.error('[soccer-api] getTodayMatches error:', error?.message ?? error);
-    if (error?.response?.status) {
-      console.error('[soccer-api] HTTP status:', error.response.status);
-    }
-    if (error?.response?.data) {
-      console.error('[soccer-api] API response data:', error.response.data);
-    }
-    return [];
-  }
+  return soccerProvider.getTodayMatches(dateStr);
 }
 
 export async function getMatchById(matchId, dateStr) {
-  if (!dateStr) dateStr = new Date().toISOString().split('T')[0];
-  const matches = await getTodayMatches(dateStr);
-  return matches.find(m => String(m.fixture.id) === String(matchId)) || null;
+  return soccerProvider.getMatchById(matchId, dateStr);
 }
 
 export async function getMatchLineups(fixtureId) {
-  console.log(`[soccer-api] getMatchLineups stub for fixture ${fixtureId}`);
-  return [];
+  return soccerProvider.getMatchLineups(fixtureId);
 }
 
 export async function getTeamStats(teamId, leagueId, season) {
-  console.log(`[soccer-api] getTeamStats stub for team=${teamId}, league=${leagueId}, season=${season}`);
-  return {};
+  return soccerProvider.getTeamStats(teamId, leagueId, season);
 }
 
 export { axios, axiosConfig };
