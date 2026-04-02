@@ -7,7 +7,6 @@
  */
 
 import pool from './db.js';
-import { getTodayGames } from './mlb-api.js';
 import { getGameOdds, matchOddsToGame, calculateImpliedProbability } from './odds-api.js';
 
 // ---------------------------------------------------------------------------
@@ -114,108 +113,6 @@ function findGameForMatchup(matchup, games) {
  * and computes CLV = implied_prob_closing − implied_prob_at_pick.
  */
 export async function captureClosingLines() {
-  // 1. Fetch pending picks that have opening odds but no closing odds yet
-  const { rows: picks } = await pool.query(`
-    SELECT id, matchup, pick, implied_prob_at_pick, created_at
-    FROM picks
-    WHERE result = 'pending'
-      AND odds_at_pick IS NOT NULL
-      AND closing_odds IS NULL
-  `);
-
-  if (picks.length === 0) {
-    console.log('[closing-line] No picks awaiting closing-line capture.');
-    return;
-  }
-
-  console.log(`[closing-line] Checking ${picks.length} pick(s) for closing-line capture...`);
-
-  // Fetch current odds once (cached for 5 min inside getGameOdds)
-  let allOdds = [];
-  try {
-    allOdds = await getGameOdds();
-  } catch (err) {
-    console.error('[closing-line] Failed to fetch odds:', err.message);
-    return;
-  }
-
-  // Group picks by date (from created_at) to minimise MLB API calls
-  const byDate = {};
-  for (const pick of picks) {
-    const date = new Date(pick.created_at).toISOString().split('T')[0];
-    if (!byDate[date]) byDate[date] = [];
-    byDate[date].push(pick);
-  }
-
-  const now = Date.now();
-
-  for (const [date, datePicks] of Object.entries(byDate)) {
-    let games;
-    try {
-      games = await getTodayGames(date);
-    } catch (err) {
-      console.error(`[closing-line] Failed to fetch games for ${date}:`, err.message);
-      continue;
-    }
-
-    for (const pick of datePicks) {
-      try {
-        // 2. Find the game for this pick's matchup
-        const game = findGameForMatchup(pick.matchup, games);
-        if (!game) {
-          console.log(`[closing-line] Pick #${pick.id}: no matching game found for "${pick.matchup}"`);
-          continue;
-        }
-
-        // 3. Check game start time — only capture if within 30 min or already started
-        const gameStartMs = game.gameDate ? new Date(game.gameDate).getTime() : null;
-        const THIRTY_MIN_MS = 30 * 60 * 1000;
-        if (gameStartMs && gameStartMs - now > THIRTY_MIN_MS) {
-          // Game starts in more than 30 minutes — too early to capture closing line
-          continue;
-        }
-
-        // 4. Get current odds for this game
-        const matchedOdds = matchOddsToGame(allOdds, game.teams?.home?.name, game.teams?.away?.name);
-        if (!matchedOdds) {
-          console.log(`[closing-line] Pick #${pick.id}: no odds found for "${pick.matchup}"`);
-          continue;
-        }
-
-        // 5. Extract closing odds for the specific pick type
-        const closingOdds = extractPickOdds(pick.pick, matchedOdds, pick.matchup);
-        if (closingOdds == null) {
-          console.log(`[closing-line] Pick #${pick.id}: could not extract closing odds for "${pick.pick}"`);
-          continue;
-        }
-
-        const impliedProbClosing = calculateImpliedProbability(closingOdds);
-        if (impliedProbClosing == null) continue;
-
-        // 6. Calculate CLV = closing implied prob − opening implied prob
-        const clv = pick.implied_prob_at_pick != null
-          ? Math.round((impliedProbClosing - parseFloat(pick.implied_prob_at_pick)) * 100) / 100
-          : null;
-
-        // 7. Persist closing line data
-        await pool.query(`
-          UPDATE picks
-          SET closing_odds         = $1,
-              implied_prob_closing = $2,
-              clv                  = $3
-          WHERE id = $4
-        `, [closingOdds, impliedProbClosing, clv, pick.id]);
-
-        const openProb = pick.implied_prob_at_pick != null ? parseFloat(pick.implied_prob_at_pick).toFixed(1) : '?';
-        console.log(
-          `[closing-line] Pick #${pick.id}: opening ${pick.odds_at_pick ?? '?'} (${openProb}%) → ` +
-          `closing ${closingOdds} (${impliedProbClosing.toFixed(1)}%) → CLV: ${clv != null ? (clv >= 0 ? '+' : '') + clv.toFixed(1) : '?'}%`
-        );
-      } catch (err) {
-        console.error(`[closing-line] Pick #${pick.id}: unexpected error — ${err.message}`);
-      }
-    }
-  }
-
-  console.log('[closing-line] Closing-line capture pass complete.');
+  console.log('[closing-line] Soccer closing line capture is pending implementation.');
+  return;
 }
