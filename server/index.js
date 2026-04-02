@@ -975,7 +975,21 @@ app.get('/api/odds/movement', verifyToken, async (req, res) => {
 
 // Ã¢â€â‚¬Ã¢â€â‚¬ Startup: run migrations Ã¢â€ â€™ seed admin Ã¢â€ â€™ start server Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 runMigrations()
-  .then(() => seedAdminUser())
+  .then(() => {
+    console.log('[H.E.X.A.] Database migrations applied successfully');
+  })
+  .catch(() => {
+    console.error('[H.E.X.A.] Database connection failed (Postgres not found). Running in "Data-Only" mode.');
+  })
+  .then(() => {
+    return seedAdminUser()
+      .then(() => {
+        console.log('[H.E.X.A.] Admin seeder executed successfully');
+      })
+      .catch(() => {
+        console.error('[H.E.X.A.] Admin seeder failed. Continuing in "Data-Only" mode.');
+      });
+  })
   .then(() => {
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`Hexa-v4 server running on http://0.0.0.0:${PORT}`);
@@ -1037,7 +1051,7 @@ runMigrations()
     });
   })
   .catch(err => {
-    console.error('[H.E.X.A.] Startup failed:', err.message);
+    console.error('[H.E.X.A.] Startup failed FULL ERROR:', err);
     process.exit(1);
   });
 

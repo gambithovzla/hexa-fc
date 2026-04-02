@@ -14,7 +14,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../store/authStore';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export default function useBankroll() {
   const { token, isAuthenticated } = useAuth();
@@ -114,3 +114,4 @@ export default function useBankroll() {
     refreshBankroll,
   };
 }
+

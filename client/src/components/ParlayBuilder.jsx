@@ -5,7 +5,7 @@ import {
 } from '@mui/material';
 import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 const labels = {
   en: {
@@ -153,3 +153,4 @@ export default function ParlayBuilder({ games, language = 'en', onSave }) {
     </Box>
   );
 }
+

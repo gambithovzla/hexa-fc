@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export default function useGames() {
   const today = new Date().toISOString().split('T')[0];
@@ -41,3 +41,4 @@ export default function useGames() {
     error,
   };
 }
+

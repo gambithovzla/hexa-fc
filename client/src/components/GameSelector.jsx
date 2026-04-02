@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Box, Checkbox, Skeleton, Typography } from '@mui/material';
-import { SoccerBall } from 'lucide-react';
+import { Football } from 'lucide-react';
 import { C, BARLOW, MONO, SANS } from '../theme';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 const L = {
   en: {
@@ -450,7 +450,7 @@ export default function GameSelector({
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-          <SoccerBall size={16} strokeWidth={2.2} color={C.accent} />
+          <Football size={16} strokeWidth={2.2} color={C.accent} />
           <Typography
             sx={{
               fontFamily: BARLOW,

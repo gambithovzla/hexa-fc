@@ -1,12 +1,12 @@
-﻿/**
+/**
  * Header.jsx
- * Fixed top bar for H.E.X.A. V4 â€” logo, subtitle, language toggle, and tab bar.
+ * Fixed top bar for H.E.X.A. V4 — logo, subtitle, language toggle, and tab bar.
  *
  * Props:
- *   lang        â€” 'en' | 'es'
- *   onLangToggle â€” (nextLang) => void
- *   activeTab   â€” 'game' | 'parlay' | 'history'
- *   onTabChange â€” (tab) => void
+ *   lang        — 'en' | 'es'
+ *   onLangToggle — (nextLang) => void
+ *   activeTab   — 'game' | 'parlay' | 'history'
+ *   onTabChange — (tab) => void
  */
 
 import { useState, useEffect } from 'react';
@@ -20,11 +20,11 @@ import TerminalGuide from './TerminalGuide';
 import { useAuth } from '../store/authStore';
 import { C, BARLOW, MONO } from '../theme';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 const SUBTITLE = {
   en: 'The EURO FOOTBALL Sports Oracle',
-  es: 'El OrÃ¡culo EURO FOOTBALL',
+  es: 'El Oráculo EURO FOOTBALL',
 };
 
 const TABS = [
@@ -36,7 +36,7 @@ const TABS = [
   { value: 'batch',   en: 'Batch Scan',  es: 'Batch Scan', adminOnly: true },
 ];
 
-// â”€â”€ Statcast badge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Statcast badge ────────────────────────────────────────────────────────────
 
 function StatcastBadge({ lang }) {
   const [status, setStatus]   = useState(null);
@@ -67,7 +67,7 @@ function StatcastBadge({ lang }) {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       if (res.status === 403 || res.status === 401) {
-        // Non-admin users can't force refresh â€” silent fail, auto-refresh handles it
+        // Non-admin users can't force refresh — silent fail, auto-refresh handles it
         return;
       }
       if (res.ok) {
@@ -137,7 +137,7 @@ function StatcastBadge({ lang }) {
           whiteSpace:    'nowrap',
         }}
       >
-        {statusLabel}{hasData && timeStr ? ` Â· ${timeStr}` : ''}
+        {statusLabel}{hasData && timeStr ? ` · ${timeStr}` : ''}
       </Typography>
 
       {/* Refresh button */}
@@ -165,13 +165,13 @@ function StatcastBadge({ lang }) {
         }}
         title={isEs ? 'Actualizar Statcast' : 'Refresh Statcast'}
       >
-        ðŸ”„
+        🔄
       </Box>
     </Box>
   );
 }
 
-// â”€â”€ Auth button / user pill â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Auth button / user pill ───────────────────────────────────────────────────
 
 function AuthButton({ lang }) {
   const { isAuthenticated, isLoading, user, logout } = useAuth();
@@ -205,7 +205,7 @@ function AuthButton({ lang }) {
             '&:hover':     { borderColor: C.cyan, boxShadow: C.cyanGlow, color: '#ffffff' },
           }}
         >
-          {isEs ? 'Iniciar sesiÃ³n' : 'Sign In'}
+          {isEs ? 'Iniciar sesión' : 'Sign In'}
         </Box>
         <AuthModal open={modalOpen} onClose={() => setModalOpen(false)} lang={lang} />
       </>
@@ -213,8 +213,8 @@ function AuthButton({ lang }) {
   }
 
   const shortEmail = user?.email
-    ? (user.email.length > 18 ? user.email.slice(0, 16) + 'â€¦' : user.email)
-    : 'â€”';
+    ? (user.email.length > 18 ? user.email.slice(0, 16) + '…' : user.email)
+    : '—';
 
   return (
     <>
@@ -237,7 +237,7 @@ function AuthButton({ lang }) {
         </Typography>
         <Box sx={{ width: '1px', height: '10px', bgcolor: C.border }} />
         <Typography sx={{ fontFamily: MONO, fontSize: '0.58rem', color: C.accent, fontWeight: 700, userSelect: 'none' }}>
-          {user?.credits ?? 0} {isEs ? 'crÃ©d.' : 'cr.'}
+          {user?.credits ?? 0} {isEs ? 'créd.' : 'cr.'}
         </Typography>
       </Box>
 
@@ -245,7 +245,7 @@ function AuthButton({ lang }) {
       <Box
         component="button"
         onClick={() => setShowPricing(true)}
-        title={isEs ? 'Comprar crÃ©ditos' : 'Buy credits'}
+        title={isEs ? 'Comprar créditos' : 'Buy credits'}
         sx={{
           px:            '10px',
           py:            '4px',
@@ -264,14 +264,14 @@ function AuthButton({ lang }) {
           '&:hover':     { borderColor: C.accent, boxShadow: C.accentGlow, color: '#ffffff' },
         }}
       >
-        âš¡ {isEs ? 'CrÃ©ditos' : 'Credits'}
+        ⚡ {isEs ? 'Créditos' : 'Credits'}
       </Box>
 
       {/* Logout button */}
       <Box
         component="button"
         onClick={logout}
-        title={isEs ? 'Cerrar sesiÃ³n' : 'Sign out'}
+        title={isEs ? 'Cerrar sesión' : 'Sign out'}
         sx={{
           display:        'inline-flex',
           alignItems:     'center',
@@ -287,7 +287,7 @@ function AuthButton({ lang }) {
           '&:hover':      { color: C.textSecondary, bgcolor: C.border },
         }}
       >
-        â
+        ⏏
       </Box>
     </Box>
     {showPricing && <PricingModal onClose={() => setShowPricing(false)} lang={lang} />}
@@ -295,7 +295,7 @@ function AuthButton({ lang }) {
   );
 }
 
-// â”€â”€ Tab button â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Tab button ────────────────────────────────────────────────────────────────
 
 function TabButton({ tab, active, lang, onClick, disabled = false }) {
   const label = lang === 'es' ? tab.es : tab.en;
@@ -336,7 +336,7 @@ function TabButton({ tab, active, lang, onClick, disabled = false }) {
   );
 }
 
-// â”€â”€ Help button â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Help button ───────────────────────────────────────────────────────────────
 
 function HelpButton({ lang }) {
   const [open, setOpen] = useState(false);
@@ -345,7 +345,7 @@ function HelpButton({ lang }) {
       <Box
         component="button"
         onClick={() => setOpen(true)}
-        title={lang === 'es' ? 'Â¿CÃ³mo funciona H.E.X.A.?' : 'How does H.E.X.A. work?'}
+        title={lang === 'es' ? '¿Cómo funciona H.E.X.A.?' : 'How does H.E.X.A. work?'}
         sx={{
           display:        'inline-flex',
           alignItems:     'center',
@@ -371,11 +371,11 @@ function HelpButton({ lang }) {
   );
 }
 
-// â”€â”€ Guide button â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Guide button ──────────────────────────────────────────────────────────────
 
 function GuideButton({ lang }) {
   const [open, setOpen] = useState(false);
-  const label = lang === 'es' ? '[ GUÃA ]' : '[ GUIDE ]';
+  const label = lang === 'es' ? '[ GUÍA ]' : '[ GUIDE ]';
   return (
     <>
       <Box
@@ -406,7 +406,7 @@ function GuideButton({ lang }) {
   );
 }
 
-// â”€â”€ Performance link â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Performance link ──────────────────────────────────────────────────────────
 
 function PerformanceLink() {
   return (
@@ -446,10 +446,10 @@ function PerformanceLink() {
   );
 }
 
-// â”€â”€ Methodology link â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Methodology link ──────────────────────────────────────────────────────────
 
 function MethodologyLink({ lang, onClick }) {
-  const label = lang === 'es' ? 'MetodologÃ­a' : 'Methodology';
+  const label = lang === 'es' ? 'Metodología' : 'Methodology';
   return (
     <Box
       component="button"
@@ -477,7 +477,7 @@ function MethodologyLink({ lang, onClick }) {
   );
 }
 
-// â”€â”€ Main export â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Main export ───────────────────────────────────────────────────────────────
 
 export default function Header({ lang = 'en', onLangToggle, activeTab, onTabChange, disabled = false, onMethodology, onPerformance, isAdmin = false, onOracleChat }) {
   const [showCreditPanel, setShowCreditPanel] = useState(false);
@@ -495,7 +495,7 @@ export default function Header({ lang = 'en', onLangToggle, activeTab, onTabChan
         backdropFilter: 'blur(8px)',
       }}
     >
-      {/* â”€â”€ Top row: logo + subtitle + controls (target: ~44px of the 72px) â”€â”€ */}
+      {/* ── Top row: logo + subtitle + controls (target: ~44px of the 72px) ── */}
       <Box
         sx={{
           display:    'flex',
@@ -528,7 +528,7 @@ export default function Header({ lang = 'en', onLangToggle, activeTab, onTabChan
         {/* Auth button / user pill */}
         <AuthButton lang={lang} />
 
-        {/* Oracle Chat button â€” admin only */}
+        {/* Oracle Chat button — admin only */}
         {isAdmin && (
           <Box
             component="button"
@@ -556,7 +556,7 @@ export default function Header({ lang = 'en', onLangToggle, activeTab, onTabChan
           </Box>
         )}
 
-        {/* Credit Manager button + panel â€” admin only */}
+        {/* Credit Manager button + panel — admin only */}
         {isAdmin && (
           <Box sx={{ position: 'relative', flexShrink: 0 }}>
             <Box
@@ -599,7 +599,7 @@ export default function Header({ lang = 'en', onLangToggle, activeTab, onTabChan
         {/* Guide button */}
         <GuideButton lang={lang} />
 
-        {/* Performance link â€” public, visible to all users */}
+        {/* Performance link — public, visible to all users */}
         <PerformanceLink />
 
         {/* Methodology link */}
@@ -612,7 +612,7 @@ export default function Header({ lang = 'en', onLangToggle, activeTab, onTabChan
         <LanguageToggle lang={lang} onToggle={onLangToggle} />
       </Box>
 
-      {/* â”€â”€ Tab bar (~28px of the 72px) â”€â”€ */}
+      {/* ── Tab bar (~28px of the 72px) ── */}
       <Box
         sx={{
           display:    'flex',
@@ -637,4 +637,5 @@ export default function Header({ lang = 'en', onLangToggle, activeTab, onTabChan
     </Box>
   );
 }
+
 

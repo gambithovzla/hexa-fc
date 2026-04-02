@@ -5,7 +5,7 @@ import {
 } from '@mui/material';
 import WbSunnyIcon from '@mui/icons-material/WbSunny';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 const labels = {
   en: {
@@ -125,3 +125,4 @@ export default function FullDayView({ date, language = 'en', onSave }) {
     </Card>
   );
 }
+

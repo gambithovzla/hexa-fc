@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import useBankroll from "../hooks/useBankroll";
 import { useAuth } from "../store/authStore";
 import { C, BARLOW, MONO } from "../theme";
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 function getToken() {
   return localStorage.getItem("hexa_token");
 }
@@ -712,3 +712,4 @@ function BetRow({ bet, onUpdate, onDelete }) {
     </div>
   );
 }
+

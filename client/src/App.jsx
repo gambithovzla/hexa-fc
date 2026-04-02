@@ -31,7 +31,7 @@ import LiveTracker         from './components/LiveTracker';
 import useHistory           from './hooks/useHistory';
 import { C, MONO, BARLOW } from './theme';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 const muiTheme = createTheme(themeConfig);
 
@@ -264,3 +264,4 @@ export default function App() {
     </ThemeProvider>
   );
 }
+

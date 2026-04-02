@@ -9,7 +9,7 @@ import { Box, Typography } from '@mui/material';
 import { useAuth } from '../store/authStore';
 import { C, BARLOW, MONO, SANS } from '../theme';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 // ── i18n ─────────────────────────────────────────────────────────────────────
 const L = {
@@ -331,3 +331,4 @@ export default function BatchScanPanel({ selectedGames = [], lang = 'en', setIsA
     </Box>
   );
 }
+

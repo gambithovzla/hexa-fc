@@ -17,7 +17,7 @@ import {
 } from 'recharts';
 import { C, MONO, DISPLAY } from '../theme';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 // ── Design tokens (local shortcuts) ──────────────────────────────────────────
 const BG      = '#0a0e1a';          // page background (slightly lighter than absolute black)
@@ -679,3 +679,4 @@ export default function PerformanceDashboard({ onBack }) {
     </Box>
   );
 }
+

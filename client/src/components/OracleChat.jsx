@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { C, BARLOW, MONO, SANS } from '../theme';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export default function OracleChat({ lang = 'en', onBack }) {
   const [matches, setMatches] = useState([]);
@@ -274,3 +274,4 @@ export default function OracleChat({ lang = 'en', onBack }) {
     </div>
   );
 }
+
