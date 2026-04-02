@@ -5,11 +5,9 @@ import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import path from 'path';
-import { getTodayGames, getTeams } from './mlb-api.js';
 import { buildContext, buildContextById } from './context-builder.js';
 import { analyzeGame, analyzeParlay, analyzeSafe, analyzeChat } from './oracle.js';
 import { getGameOdds, matchOddsToGame, calculateImpliedProbability } from './odds-api.js';
-import { getCacheStatus, refreshCache, getPitcherStatcast, getBatterStatcast } from './savant-fetcher.js';
 import authRouter, { bankrollRouter, seedAdminUser } from './auth.js';
 import { verifyToken } from './middleware/auth-middleware.js';
 import { runMigrations } from './migrate.js';
@@ -19,15 +17,15 @@ import picksRouter from './routes/picks.js';
 import { handleBMCWebhook } from './bmc-webhook.js';
 import { resolvePendingPicks } from './pick-resolver.js';
 import { captureClosingLines } from './closing-line-capture.js';
-import { getLiveGameData, getMultipleLiveGames } from './live-feed.js';
 import { parseLivePick, calculatePickProgress } from './pick-tracker.js';
 import { captureOddsSnapshot, getLineMovement } from './line-movement.js';
+import { getTodayMatches, SUPPORTED_LEAGUES } from './soccer-api.js';
 
 dotenv.config();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url)); // eslint-disable-line no-unused-vars
 
-// ── Safe error helper — never leak internal details to client ──────────────
+// â”€â”€ Safe error helper â€” never leak internal details to client â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function safeError(err) {
   if (process.env.NODE_ENV === 'production') {
     console.error('[H.E.X.A. Error]', err.message, err.stack?.split('\n')[1]);
@@ -40,13 +38,13 @@ const app = express();
 app.set('trust proxy', 1);
 const PORT = process.env.PORT || 3000;
 
-// ── CORS: strict origin (must be first) ───────────────────────────────────────
+// â”€â”€ CORS: strict origin (must be first) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 app.use(cors({
   origin: ['https://hexaoracle.lat', 'https://www.hexaoracle.lat', 'http://localhost:5173', /\.vercel\.app$/],
   credentials: true,
 }));
 
-// ── Security: HTTP headers ─────────────────────────────────────────────────────
+// â”€â”€ Security: HTTP headers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -64,7 +62,7 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
 
-// ── Rate limiting: 100 req / 15 min per IP (webhooks exempt) ──────────────────
+// â”€â”€ Rate limiting: 100 req / 15 min per IP (webhooks exempt) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 1000,
@@ -76,7 +74,7 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// ── Strict rate limiting for analysis endpoints (consume Anthropic API) ───────
+// â”€â”€ Strict rate limiting for analysis endpoints (consume Anthropic API) â”€â”€â”€â”€â”€â”€â”€
 const analysisLimiter = rateLimit({
   windowMs: 60 * 1000,   // 1 minute window
   max: 10,               // max 10 analysis requests per minute per IP
@@ -85,19 +83,19 @@ const analysisLimiter = rateLimit({
   message: { success: false, error: 'Too many analysis requests. Please wait a moment.' },
 });
 
-// ── Body parsers (raw must come before json for webhook routes) ────────────────
+// â”€â”€ Body parsers (raw must come before json for webhook routes) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 app.use('/api/lemon/webhook', express.raw({ type: 'application/json' }));
 app.use('/api/bmc/webhook',   express.raw({ type: 'application/json' }));
 app.use(express.json({ limit: '1mb' }));
 
-// ── Auth routes ───────────────────────────────────────────────────────────────
+// â”€â”€ Auth routes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 app.use('/api/auth',      authRouter);
 app.use('/api/bankroll',  bankrollRouter);
 app.use('/api/lemon',     lemonRouter);
 app.use('/api/picks',     picksRouter);
 app.post('/api/bmc/webhook', handleBMCWebhook);
 
-// ── Credit helpers ────────────────────────────────────────────────────────────
+// â”€â”€ Credit helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const CREDIT_COSTS = {
   single:  { fast: 1,  deep: 2  },
@@ -158,7 +156,7 @@ async function refundCredits(userId, cost, email) {
   }
 }
 
-// ── Admin middleware ───────────────────────────────────────────────────────────
+// â”€â”€ Admin middleware â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function isAdmin(req, res, next) {
   if (req.user.email !== 'cdanielrr@hotmail.com') {
@@ -167,14 +165,15 @@ function isAdmin(req, res, next) {
   next();
 }
 
-// GET /api/games?date=YYYY-MM-DD
-app.get('/api/games', async (req, res) => {
+// GET /api/matches?date=YYYY-MM-DD
+app.get('/api/matches', async (req, res) => {
   try {
     const date = req.query.date || new Date().toISOString().split('T')[0];
-    const games = await getTodayGames(date);
-    res.json({ success: true, data: games });
+    const matches = await getTodayMatches(date);
+    res.json(matches);
   } catch (err) {
-    res.status(500).json({ success: false, error: safeError(err) });
+    console.error('[matches] Error fetching matches:', err);
+    res.status(500).json({ success: false, error: 'Failed to fetch matches' });
   }
 });
 
@@ -188,17 +187,12 @@ app.get('/api/odds/today', async (req, res) => {
   }
 });
 
-// GET /api/teams
-app.get('/api/teams', async (req, res) => {
-  try {
-    const teams = await getTeams();
-    res.json({ success: true, data: teams });
-  } catch (err) {
-    res.status(500).json({ success: false, error: safeError(err) });
-  }
+// GET /api/leagues
+app.get('/api/leagues', (_req, res) => {
+  res.json(SUPPORTED_LEAGUES);
 });
 
-// GET /api/games/:gameId/context  — devuelve el contexto en texto plano
+// GET /api/games/:gameId/context  â€” devuelve el contexto en texto plano
 app.get('/api/games/:gameId/context', verifyToken, async (req, res) => {
   try {
     const context = await buildContextById(req.params.gameId);
@@ -208,7 +202,7 @@ app.get('/api/games/:gameId/context', verifyToken, async (req, res) => {
   }
 });
 
-// POST /api/analyze/game  — requires auth, costs 1 (fast) or 2 (deep) + 3 if webSearch
+// POST /api/analyze/game  â€” requires auth, costs 1 (fast) or 2 (deep) + 3 if webSearch
 app.post('/api/analyze/game', analysisLimiter, verifyToken, async (req, res) => {
   const {
     gameId,
@@ -228,14 +222,14 @@ app.post('/api/analyze/game', analysisLimiter, verifyToken, async (req, res) => 
   const cost         = calcServerCost('single', model, webSearch);
 
   try {
-    let games    = await getTodayGames(date);
+    let games    = await getTodayMatches(date);
     let gameData = games.find(g => String(g.gamePk) === String(gameId));
 
     if (!gameData) {
       // Retry with today's explicit date in case the caller passed a stale/different date
       const todayStr = new Date().toISOString().split('T')[0];
       if (todayStr !== date) {
-        const retryGames = await getTodayGames(todayStr);
+        const retryGames = await getTodayMatches(todayStr);
         console.log(`[index] gamePk ${gameId} not found in date=${date}; retrying with today=${todayStr}. ` +
           `Found gamePks: [${retryGames.map(g => g.gamePk).join(', ')}]`);
         gameData = retryGames.find(g => String(g.gamePk) === String(gameId));
@@ -266,52 +260,13 @@ app.post('/api/analyze/game', analysisLimiter, verifyToken, async (req, res) => 
       if (brResult.rows.length > 0) {
         userBankroll = parseFloat(brResult.rows[0].current_bankroll);
       }
-    } catch { /* bankroll is optional — never block the analysis */ }
+    } catch { /* bankroll is optional â€” never block the analysis */ }
 
     let analysis;
     try {
       const context = await buildContext(gameData, matchedOdds);
       const matchup = `${gameData.teams?.away?.abbreviation ?? 'AWAY'} @ ${gameData.teams?.home?.abbreviation ?? 'HOME'}`;
-
-      // Construir statcastData para el validador XGBoost.
-      // Los datos ya están en caché desde buildContext, por lo que no hay overhead.
-      let statcastData = null;
-      try {
-        const homePitcherName = gameData.teams?.home?.probablePitcher?.fullName;
-        const awayPitcherName = gameData.teams?.away?.probablePitcher?.fullName;
-
-        const [homePitcherStat, awayPitcherStat] = await Promise.all([
-          homePitcherName ? getPitcherStatcast(homePitcherName) : Promise.resolve(null),
-          awayPitcherName ? getPitcherStatcast(awayPitcherName) : Promise.resolve(null),
-        ]);
-
-        // Calcular xwOBA y wOBA promedios de la alineación local y visitante
-        const buildLineupStats = async (lineupArr) => {
-          if (!lineupArr?.length) return { avg_xwOBA: null, avg_woba_7d: null };
-          const stats = await Promise.all(
-            lineupArr.slice(0, 5).map(p => getBatterStatcast(p.fullName).catch(() => null))
-          );
-          const valid = stats.filter(s => s?.xwOBA != null);
-          if (!valid.length) return { avg_xwOBA: null, avg_woba_7d: null };
-          const avg_xwOBA  = valid.reduce((s, p) => s + p.xwOBA, 0) / valid.length;
-          const avg_woba_7d = valid.reduce((s, p) => s + (p.rolling_windows?.woba_7d ?? p.xwOBA), 0) / valid.length;
-          return { avg_xwOBA, avg_woba_7d };
-        };
-
-        const [homeLineup, awayLineup] = await Promise.all([
-          buildLineupStats(gameData.lineups?.home),
-          buildLineupStats(gameData.lineups?.away),
-        ]);
-
-        statcastData = {
-          homePitcher: homePitcherStat,
-          awayPitcher: awayPitcherStat,
-          homeLineup,
-          awayLineup,
-        };
-      } catch (statcastErr) {
-        console.warn('[index] statcastData build failed (non-critical):', statcastErr.message);
-      }
+      const statcastData = null;
 
       analysis = await analyzeGame({
         matchup, betType, context, riskProfile,
@@ -326,8 +281,8 @@ app.post('/api/analyze/game', analysisLimiter, verifyToken, async (req, res) => 
       return res.status(500).json({
         success: false,
         error: isTimeout
-          ? 'El análisis tardó demasiado. Créditos reembolsados. Por favor reintenta.'
-          : 'Análisis fallido. Tus créditos han sido reembolsados.',
+          ? 'El anÃ¡lisis tardÃ³ demasiado. CrÃ©ditos reembolsados. Por favor reintenta.'
+          : 'AnÃ¡lisis fallido. Tus crÃ©ditos han sido reembolsados.',
       });
     }
 
@@ -338,7 +293,7 @@ app.post('/api/analyze/game', analysisLimiter, verifyToken, async (req, res) => 
   }
 });
 
-// POST /api/analyze/parlay  — requires auth, costs 4 (fast) or 8 (deep) credits
+// POST /api/analyze/parlay  â€” requires auth, costs 4 (fast) or 8 (deep) credits
 app.post('/api/analyze/parlay', analysisLimiter, verifyToken, async (req, res) => {
   const {
     gameIds,
@@ -359,7 +314,7 @@ app.post('/api/analyze/parlay', analysisLimiter, verifyToken, async (req, res) =
   const cost         = calcServerCost('parlay', model, false);
 
   try {
-    const games = await getTodayGames(date);
+    const games = await getTodayMatches(date);
 
     let allOdds = [];
     try { allOdds = await getGameOdds(); } catch { /* optional */ }
@@ -389,8 +344,8 @@ app.post('/api/analyze/parlay', analysisLimiter, verifyToken, async (req, res) =
       return res.status(500).json({
         success: false,
         error: isTimeout
-          ? 'El análisis tardó demasiado. Créditos reembolsados. Por favor reintenta.'
-          : 'Análisis fallido. Tus créditos han sido reembolsados.',
+          ? 'El anÃ¡lisis tardÃ³ demasiado. CrÃ©ditos reembolsados. Por favor reintenta.'
+          : 'AnÃ¡lisis fallido. Tus crÃ©ditos han sido reembolsados.',
       });
     }
 
@@ -403,7 +358,7 @@ app.post('/api/analyze/parlay', analysisLimiter, verifyToken, async (req, res) =
   }
 });
 
-// POST /api/analyze/safe — Safe Pick mode (supports single gameId or multiple gameIds for parlay safe picks)
+// POST /api/analyze/safe â€” Safe Pick mode (supports single gameId or multiple gameIds for parlay safe picks)
 app.post('/api/analyze/safe', analysisLimiter, verifyToken, async (req, res) => {
   const { gameId, gameIds, lang = 'en', date } = req.body;
   const resolvedDate = date || new Date().toISOString().split('T')[0];
@@ -422,13 +377,13 @@ app.post('/api/analyze/safe', analysisLimiter, verifyToken, async (req, res) => 
   const isMulti = ids.length > 1;
 
   try {
-    let games = await getTodayGames(resolvedDate);
+    let games = await getTodayMatches(resolvedDate);
 
     // Fallback: try today if requested date returned nothing
     if (games.length === 0) {
       const todayStr = new Date().toISOString().split('T')[0];
       if (todayStr !== resolvedDate) {
-        games = await getTodayGames(todayStr);
+        games = await getTodayMatches(todayStr);
       }
     }
 
@@ -519,7 +474,7 @@ app.post('/api/analyze/safe', analysisLimiter, verifyToken, async (req, res) => 
   }
 });
 
-// POST /api/admin/grant-credits — Manually add credits to a user (admin only)
+// POST /api/admin/grant-credits â€” Manually add credits to a user (admin only)
 app.post('/api/admin/grant-credits', verifyToken, isAdmin, async (req, res) => {
   const { email, amount } = req.body;
 
@@ -552,7 +507,7 @@ app.post('/api/admin/grant-credits', verifyToken, isAdmin, async (req, res) => {
   }
 });
 
-// POST /api/analyze/batch — Admin Batch Scan: analyze multiple games individually in parallel
+// POST /api/analyze/batch â€” Admin Batch Scan: analyze multiple games individually in parallel
 app.post('/api/analyze/batch', analysisLimiter, verifyToken, isAdmin, async (req, res) => {
   const { gameIds, lang = 'es', date } = req.body;
 
@@ -567,7 +522,7 @@ app.post('/api/analyze/batch', analysisLimiter, verifyToken, isAdmin, async (req
   const resolvedDate = date || new Date().toISOString().split('T')[0];
 
   try {
-    const games = await getTodayGames(resolvedDate);
+    const games = await getTodayMatches(resolvedDate);
 
     let allOdds = [];
     try { allOdds = await getGameOdds(); } catch { /* optional */ }
@@ -741,7 +696,7 @@ app.post('/api/analyze/batch', analysisLimiter, verifyToken, isAdmin, async (req
   }
 });
 
-// POST /api/analyze/chat — Direct chat with Oracle (admin only, no credits)
+// POST /api/analyze/chat â€” Direct chat with Oracle (admin only, no credits)
 app.post('/api/analyze/chat', analysisLimiter, verifyToken, isAdmin, async (req, res) => {
   const { gameId, question, conversationHistory = [], lang = 'en', date } = req.body;
 
@@ -751,13 +706,13 @@ app.post('/api/analyze/chat', analysisLimiter, verifyToken, isAdmin, async (req,
 
   try {
     const resolvedDate = date || new Date().toISOString().split('T')[0];
-    let games    = await getTodayGames(resolvedDate);
+    let games    = await getTodayMatches(resolvedDate);
     let gameData = games.find(g => String(g.gamePk) === String(gameId));
 
     if (!gameData) {
       const todayStr = new Date().toISOString().split('T')[0];
       if (todayStr !== resolvedDate) {
-        const retryGames = await getTodayGames(todayStr);
+        const retryGames = await getTodayMatches(todayStr);
         gameData = retryGames.find(g => String(g.gamePk) === String(gameId));
         if (gameData) games = retryGames;
       }
@@ -791,132 +746,17 @@ app.post('/api/analyze/chat', analysisLimiter, verifyToken, isAdmin, async (req,
   }
 });
 
-// GET /api/auth/is-admin — check if the authenticated user is admin
+// GET /api/auth/is-admin â€” check if the authenticated user is admin
 app.get('/api/auth/is-admin', verifyToken, (req, res) => {
   res.json({ isAdmin: req.user.email === 'cdanielrr@hotmail.com' });
 });
 
-// GET /api/games/:gamePk/live — Live game feed (GUMBO) with normalized data
-app.get('/api/games/:gamePk/live', async (req, res) => {
-  try {
-    const data = await getLiveGameData(req.params.gamePk);
-    res.json({ success: true, data });
-  } catch (err) {
-    res.status(500).json({ success: false, error: safeError(err) });
-  }
+// POST /api/picks/live-progress - Temporary stub during football migration
+app.post('/api/picks/live-progress', verifyToken, async (_req, res) => {
+  res.json({ success: true, data: [] });
 });
 
-// POST /api/picks/live-progress — Calculate live progress for user's pending picks
-app.post('/api/picks/live-progress', verifyToken, async (req, res) => {
-  try {
-    const userId = req.user.id;
-
-    // Get user's pending picks
-    const { rows: pendingPicks } = await pool.query(
-      `SELECT id, matchup, pick, oracle_confidence, type, created_at
-       FROM picks
-       WHERE user_id = $1 AND result = 'pending'
-       ORDER BY created_at DESC
-       LIMIT 20`,
-      [userId]
-    );
-
-    if (pendingPicks.length === 0) {
-      return res.json({ success: true, data: [] });
-    }
-
-    // Get today's games to find gamePks
-    const today = new Date().toISOString().split('T')[0];
-    const games = await getTodayGames(today);
-
-    // Match each pick to a live game and calculate progress
-    const results = [];
-
-    for (const pick of pendingPicks) {
-      // Try to find the game this pick belongs to
-      const matchedGame = games.find(g => {
-        const homeAbbr = g.teams?.home?.abbreviation?.toLowerCase() ?? '';
-        const awayAbbr = g.teams?.away?.abbreviation?.toLowerCase() ?? '';
-        const homeName = g.teams?.home?.name?.toLowerCase() ?? '';
-        const awayName = g.teams?.away?.name?.toLowerCase() ?? '';
-        const matchup = (pick.matchup ?? '').toLowerCase();
-        return matchup.includes(homeAbbr) || matchup.includes(awayAbbr) ||
-               matchup.includes(homeName) || matchup.includes(awayName);
-      });
-
-      if (!matchedGame) {
-        results.push({ pickId: pick.id, pick: pick.pick, matchup: pick.matchup, progress: null, status: 'no_game_found' });
-        continue;
-      }
-
-      const gameStatus = matchedGame.status?.simplified ?? 'scheduled';
-      if (gameStatus === 'scheduled') {
-        results.push({ pickId: pick.id, pick: pick.pick, matchup: pick.matchup, gamePk: matchedGame.gamePk, progress: null, status: 'not_started' });
-        continue;
-      }
-
-      // Game is live or final — fetch live data and calculate progress
-      try {
-        const liveData = await getLiveGameData(matchedGame.gamePk);
-        const parsed = parseLivePick(pick.pick);
-        const progress = calculatePickProgress(parsed, liveData);
-
-        results.push({
-          pickId: pick.id,
-          pick: pick.pick,
-          matchup: pick.matchup,
-          gamePk: matchedGame.gamePk,
-          confidence: pick.oracle_confidence,
-          ...progress,
-        });
-      } catch (err) {
-        results.push({ pickId: pick.id, pick: pick.pick, matchup: pick.matchup, gamePk: matchedGame.gamePk, progress: null, status: 'fetch_error', error: err.message });
-      }
-    }
-
-    res.json({ success: true, data: results });
-  } catch (err) {
-    res.status(500).json({ success: false, error: safeError(err) });
-  }
-});
-
-// POST /api/games/live — Live data for multiple games at once
-app.post('/api/games/live', async (req, res) => {
-  try {
-    const { gamePks } = req.body;
-    if (!gamePks || !Array.isArray(gamePks) || gamePks.length === 0) {
-      return res.status(400).json({ success: false, error: 'gamePks array is required' });
-    }
-    if (gamePks.length > 20) {
-      return res.status(400).json({ success: false, error: 'Maximum 20 games per request' });
-    }
-    const data = await getMultipleLiveGames(gamePks);
-    res.json({ success: true, data });
-  } catch (err) {
-    res.status(500).json({ success: false, error: safeError(err) });
-  }
-});
-
-// GET /api/savant/status
-app.get('/api/savant/status', (_req, res) => {
-  try {
-    res.json({ success: true, data: getCacheStatus() });
-  } catch (err) {
-    res.status(500).json({ success: false, error: safeError(err) });
-  }
-});
-
-// POST /api/savant/refresh
-app.post('/api/savant/refresh', verifyToken, isAdmin, async (_req, res) => {
-  try {
-    await refreshCache();
-    res.json({ success: true, data: getCacheStatus() });
-  } catch (err) {
-    res.status(500).json({ success: false, error: safeError(err) });
-  }
-});
-
-// GET /api/picks/resolve — manually trigger pick resolution (admin/testing)
+// GET /api/picks/resolve â€” manually trigger pick resolution (admin/testing)
 app.get('/api/picks/resolve', verifyToken, async (_req, res) => {
   try {
     const summary = await resolvePendingPicks();
@@ -926,87 +766,12 @@ app.get('/api/picks/resolve', verifyToken, async (_req, res) => {
   }
 });
 
-// POST /api/picks/resolve-game — Resolve picks for a specific finished game
-app.post('/api/picks/resolve-game', verifyToken, async (req, res) => {
-  try {
-    const { gamePk } = req.body;
-    if (!gamePk) return res.status(400).json({ success: false, error: 'gamePk required' });
-
-    // Get final game data
-    const liveData = await getLiveGameData(gamePk);
-    if (liveData.status !== 'final') {
-      return res.json({ success: false, error: 'Game not finished yet', status: liveData.status });
-    }
-
-    const homeTeam = liveData.home?.abbreviation ?? '';
-    const awayTeam = liveData.away?.abbreviation ?? '';
-    const homeName = liveData.home?.name ?? '';
-    const awayName = liveData.away?.name ?? '';
-    const homeScore = liveData.home?.score ?? 0;
-    const awayScore = liveData.away?.score ?? 0;
-    const totalRuns = homeScore + awayScore;
-
-    // Find pending picks that match this game
-    const { rows: pendingPicks } = await pool.query(
-      `SELECT id, pick, matchup FROM picks WHERE result = 'pending'`
-    );
-
-    let resolved = 0;
-    for (const pick of pendingPicks) {
-      const matchup = (pick.matchup ?? '').toLowerCase();
-      const isThisGame = matchup.includes(homeTeam.toLowerCase()) || matchup.includes(awayTeam.toLowerCase()) ||
-                         matchup.includes(homeName.toLowerCase()) || matchup.includes(awayName.toLowerCase());
-      if (!isThisGame) continue;
-
-      const pickStr = (pick.pick ?? '').toLowerCase();
-      let result = null;
-
-      // Over/Under
-      const ouMatch = pickStr.match(/^(over|under|más\s+de|menos\s+de)\s+(\d+\.?\d*)/i);
-      if (ouMatch) {
-        const dir = ouMatch[1].toLowerCase().startsWith('o') || ouMatch[1].toLowerCase().startsWith('m') ? 'over' : 'under';
-        const line = parseFloat(ouMatch[2]);
-        if (dir === 'over') result = totalRuns > line ? 'won' : totalRuns < line ? 'lost' : 'push';
-        else result = totalRuns < line ? 'won' : totalRuns > line ? 'lost' : 'push';
-      }
-
-      // Moneyline
-      if (!result && pickStr.match(/\bml\b|moneyline|a ganar/i)) {
-        const teamInPick = pickStr.replace(/\s*(ml|moneyline|a ganar).*$/i, '').trim();
-        const isHome = homeTeam.toLowerCase() === teamInPick || homeName.toLowerCase().includes(teamInPick);
-        const isAway = awayTeam.toLowerCase() === teamInPick || awayName.toLowerCase().includes(teamInPick);
-        if (isHome) result = homeScore > awayScore ? 'won' : homeScore < awayScore ? 'lost' : 'push';
-        else if (isAway) result = awayScore > homeScore ? 'won' : awayScore < homeScore ? 'lost' : 'push';
-      }
-
-      // Run Line
-      if (!result) {
-        const rlMatch = pickStr.match(/^(.+?)\s+([+-]?\d+\.?\d*)\s*(?:run\s*line|rl)?/i);
-        if (rlMatch && (rlMatch[2].includes('+') || rlMatch[2].includes('-') || rlMatch[2].includes('1.5'))) {
-          const teamInPick = rlMatch[1].trim().toLowerCase();
-          const spread = parseFloat(rlMatch[2]);
-          const isHome = homeTeam.toLowerCase() === teamInPick || homeName.toLowerCase().includes(teamInPick);
-          const myScore = isHome ? homeScore : awayScore;
-          const oppScore = isHome ? awayScore : homeScore;
-          const adjusted = myScore + spread;
-          result = adjusted > oppScore ? 'won' : adjusted < oppScore ? 'lost' : 'push';
-        }
-      }
-
-      if (result) {
-        await pool.query(`UPDATE picks SET result = $1 WHERE id = $2`, [result, pick.id]);
-        resolved++;
-        console.log(`[auto-resolve] Pick ${pick.id} "${pick.pick}" → ${result} (${awayTeam} ${awayScore} - ${homeTeam} ${homeScore})`);
-      }
-    }
-
-    res.json({ success: true, resolved, totalRuns, homeScore, awayScore });
-  } catch (err) {
-    res.status(500).json({ success: false, error: safeError(err) });
-  }
+// POST /api/picks/resolve-game - Temporary stub during football migration
+app.post('/api/picks/resolve-game', verifyToken, async (_req, res) => {
+  res.status(501).json({ success: false, error: 'resolve-game is temporarily unavailable during football migration' });
 });
 
-// POST /api/picks — guarda un pick en el historial
+// POST /api/picks - guarda un pick en el historial
 app.post('/api/picks', verifyToken, async (req, res) => {
   try {
     const {
@@ -1045,7 +810,7 @@ app.post('/api/picks', verifyToken, async (req, res) => {
   }
 });
 
-// GET /api/picks/clv-stats — CLV dashboard stats for authenticated user
+// GET /api/picks/clv-stats â€” CLV dashboard stats for authenticated user
 app.get('/api/picks/clv-stats', verifyToken, async (req, res) => {
   try {
     const userId = req.user.id;
@@ -1085,8 +850,8 @@ app.get('/api/picks/clv-stats', verifyToken, async (req, res) => {
     for (const row of allWithCLV) {
       const p = (row.pick ?? '').toLowerCase();
       let betType = 'moneyline';
-      if (/over|under|m[aá]s\s+de|menos\s+de|alta|baja/i.test(p)) betType = 'over_under';
-      else if (/run\s+line|rl|l[ií]nea\s+de\s+carrera/i.test(p)) betType = 'runline';
+      if (/over|under|m[aÃ¡]s\s+de|menos\s+de|alta|baja/i.test(p)) betType = 'over_under';
+      else if (/run\s+line|rl|l[iÃ­]nea\s+de\s+carrera/i.test(p)) betType = 'runline';
 
       betTypeMap[betType].count++;
       betTypeMap[betType].totalCLV += parseFloat(row.clv);
@@ -1131,7 +896,7 @@ app.get('/api/picks/clv-stats', verifyToken, async (req, res) => {
   }
 });
 
-// GET /api/picks — obtiene el historial del usuario
+// GET /api/picks â€” obtiene el historial del usuario
 app.get('/api/picks', verifyToken, async (req, res) => {
   try {
     const { rows } = await pool.query(
@@ -1144,7 +909,7 @@ app.get('/api/picks', verifyToken, async (req, res) => {
   }
 });
 
-// PATCH /api/picks/:id — actualiza resultado (win/loss/pending)
+// PATCH /api/picks/:id â€” actualiza resultado (win/loss/pending)
 app.patch('/api/picks/:id', verifyToken, async (req, res) => {
   try {
     const { result } = req.body;
@@ -1159,7 +924,7 @@ app.patch('/api/picks/:id', verifyToken, async (req, res) => {
   }
 });
 
-// DELETE /api/picks/:id — elimina un pick individual del historial
+// DELETE /api/picks/:id â€” elimina un pick individual del historial
 app.delete('/api/picks/:id', verifyToken, async (req, res) => {
   try {
     const { rows } = await pool.query(
@@ -1173,7 +938,7 @@ app.delete('/api/picks/:id', verifyToken, async (req, res) => {
   }
 });
 
-// DELETE /api/picks — elimina todo el historial del usuario autenticado
+// DELETE /api/picks â€” elimina todo el historial del usuario autenticado
 app.delete('/api/picks', verifyToken, async (req, res) => {
   try {
     await pool.query('DELETE FROM picks WHERE user_id = $1', [req.user.id]);
@@ -1183,7 +948,7 @@ app.delete('/api/picks', verifyToken, async (req, res) => {
   }
 });
 
-// GET /api/odds/movement — line movement data for a specific game
+// GET /api/odds/movement â€” line movement data for a specific game
 app.get('/api/odds/movement', verifyToken, async (req, res) => {
   try {
     const { home, away, date } = req.query;
@@ -1200,42 +965,14 @@ app.get('/api/odds/movement', verifyToken, async (req, res) => {
   }
 });
 
-// ── Startup: run migrations → seed admin → start server ───────────────────────
+// â”€â”€ Startup: run migrations â†’ seed admin â†’ start server â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 runMigrations()
   .then(() => seedAdminUser())
   .then(() => {
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`Hexa-v4 server running on http://0.0.0.0:${PORT}`);
 
-      // ── Statcast cache warm-up (non-blocking, delayed 30s) ──────────────
-      console.log('[H.E.X.A.] Statcast cache warm-up programado en 30s...');
-      setTimeout(() => {
-        console.log('[H.E.X.A.] Warming up Statcast cache...');
-        refreshCache()
-          .then(status => {
-            const total = Object.values(status?.recordCounts ?? {}).reduce((a, b) => a + b, 0);
-            console.log(`[H.E.X.A.] Statcast cache ready: ${total} records loaded`);
-          })
-          .catch(err => {
-            console.warn('[H.E.X.A.] Statcast warm-up failed (will retry on first request):', err.message);
-          });
-      }, 30000).unref();
-
-      // ── Auto-refresh every 6 hours ───────────────────────────────────────
-      const SIX_HOURS = 6 * 60 * 60 * 1000;
-      setInterval(() => {
-        console.log('[H.E.X.A.] Refreshing Statcast cache (scheduled)...');
-        refreshCache()
-          .then(status => {
-            const total = Object.values(status?.recordCounts ?? {}).reduce((a, b) => a + b, 0);
-            console.log(`[H.E.X.A.] Statcast cache refreshed: ${total} records`);
-          })
-          .catch(err => {
-            console.warn('[H.E.X.A.] Scheduled Statcast refresh failed:', err.message);
-          });
-      }, SIX_HOURS).unref();
-
-      // ── Line movement snapshot: every 6 hours between 9am–7pm ET ────────
+      // â”€â”€ Line movement snapshot: every 6 hours between 9amâ€“7pm ET â”€â”€â”€â”€â”€â”€â”€â”€
       const SIX_HOURS_LM = 6 * 60 * 60 * 1000;
       setInterval(() => {
         const etHour = parseInt(
@@ -1244,7 +981,7 @@ runMigrations()
           }).format(new Date()),
           10
         );
-        // Window: 09:00–18:59 ET (lines open in the morning, games start ~18:00+)
+        // Window: 09:00â€“18:59 ET (lines open in the morning, games start ~18:00+)
         if (etHour >= 9 && etHour < 19) {
           console.log(`[line-movement] Scheduled snapshot triggered (ET hour: ${etHour})`);
           captureOddsSnapshot().catch(err => {
@@ -1253,7 +990,7 @@ runMigrations()
         }
       }, SIX_HOURS_LM).unref();
 
-      // ── Pick resolver: every 30 min between 7pm–6am ET ───────────────────
+      // â”€â”€ Pick resolver: every 30 min between 7pmâ€“6am ET â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       const THIRTY_MIN = 30 * 60 * 1000;
       setInterval(() => {
         // Get current hour in US Eastern Time (handles EDT/EST automatically)
@@ -1263,7 +1000,7 @@ runMigrations()
           }).format(new Date()),
           10
         );
-        // Window: 19:00–05:59 ET (west coast games finish ~7pm ET; extras/rain delays can run past 3am)
+        // Window: 19:00â€“05:59 ET (west coast games finish ~7pm ET; extras/rain delays can run past 3am)
         if (etHour >= 19 || etHour < 6) {
           console.log(`[pick-resolver] Scheduled run triggered (ET hour: ${etHour})`);
           resolvePendingPicks().catch(err => {
@@ -1272,7 +1009,7 @@ runMigrations()
         }
       }, THIRTY_MIN).unref();
 
-      // ── Closing line capture: every 2 hours between 5pm–1am ET ──────────
+      // â”€â”€ Closing line capture: every 2 hours between 5pmâ€“1am ET â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       const TWO_HOURS = 2 * 60 * 60 * 1000;
       setInterval(() => {
         const etHour = parseInt(
@@ -1281,7 +1018,7 @@ runMigrations()
           }).format(new Date()),
           10
         );
-        // Closing line capture: 17:00–00:59 ET (before and during MLB game windows)
+        // Closing line capture: 17:00â€“00:59 ET (before and during MLB game windows)
         if (etHour >= 17 || etHour < 1) {
           console.log(`[closing-line] Scheduled capture triggered (ET hour: ${etHour})`);
           captureClosingLines().catch(err => {
@@ -1295,3 +1032,8 @@ runMigrations()
     console.error('[H.E.X.A.] Startup failed:', err.message);
     process.exit(1);
   });
+
+
+
+
+
