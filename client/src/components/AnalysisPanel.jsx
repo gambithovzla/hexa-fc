@@ -24,9 +24,9 @@ const L = {
     betType: {
       label:      'Bet Focus',
       all:        'All Types',
-      moneyline:  'Moneyline',
-      runline:    'Run Line',
-      totals:     'Over/Under',
+      moneyline:  '1X2 (Match Odds)',
+      runline:    'Asian Handicap',
+      totals:     'Over/Under Goals',
       pitcherprops:'🔥 Pitcher Props (Strikeouts)',
       batterprops: '🦇 Batter Props (HR, Hits)',
     },
@@ -63,9 +63,9 @@ const L = {
     betType: {
       label:      'Enfoque de Apuesta',
       all:        'Todos los Tipos',
-      moneyline:  'Moneyline',
-      runline:    'Línea de Carreras',
-      totals:     'Totales (O/U)',
+      moneyline:  '1X2 (Match Odds)',
+      runline:    'Asian Handicap',
+      totals:     'Over/Under Goals',
       pitcherprops:'🔥 Pitcher Props (Ponches)',
       batterprops: '🦇 Batter Props (HR, Hits)',
     },
@@ -125,6 +125,10 @@ function SectionLabel({ children }) {
   );
 }
 
+function getMatchId(match) {
+  return match?.fixture?.id ?? match?.gamePk ?? match?.id ?? null;
+}
+
 // ── MatchupHeader — Sci-Fi team duel display ──────────────────────────────────
 
 function MatchupHeader({ games, mode }) {
@@ -138,18 +142,18 @@ function MatchupHeader({ games, mode }) {
         </Typography>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
           {games.map((g, i) => {
-            const a = g.teams?.away?.abbreviation ?? '???';
-            const h = g.teams?.home?.abbreviation ?? '???';
-            const awayId = g.teams?.away?.id;
-            const homeId = g.teams?.home?.id;
+            const a = g.teams?.away?.name ?? g.teams?.away?.abbreviation ?? '???';
+            const h = g.teams?.home?.name ?? g.teams?.home?.abbreviation ?? '???';
+            const awayLogo = g.teams?.away?.logo;
+            const homeLogo = g.teams?.home?.logo;
             return (
               <Box key={i} sx={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                 <span style={{ color: C.cyan, opacity: 0.5, fontFamily: MONO, fontSize: '12px' }}>[</span>
                 <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                  {awayId && (
+                  {awayLogo && (
                     <Box
                       component="img"
-                      src={`https://www.mlb.com/team-logos/${awayId}.svg`}
+                      src={awayLogo}
                       width={20}
                       height={20}
                       sx={{ objectFit: 'contain' }}
@@ -160,10 +164,10 @@ function MatchupHeader({ games, mode }) {
                 </Box>
                 <Typography component="span" sx={{ fontFamily: MONO, fontSize: '9px', color: C.textMuted }}>@</Typography>
                 <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                  {homeId && (
+                  {homeLogo && (
                     <Box
                       component="img"
-                      src={`https://www.mlb.com/team-logos/${homeId}.svg`}
+                      src={homeLogo}
                       width={20}
                       height={20}
                       sx={{ objectFit: 'contain' }}
@@ -182,17 +186,18 @@ function MatchupHeader({ games, mode }) {
   }
 
   const g = games[0];
-  const away = g.teams?.away?.abbreviation ?? '???';
-  const home = g.teams?.home?.abbreviation ?? '???';
+  const away = g.teams?.away?.abbreviation ?? g.teams?.away?.name ?? '???';
+  const home = g.teams?.home?.abbreviation ?? g.teams?.home?.name ?? '???';
   const awayFull = g.teams?.away?.name ?? away;
   const homeFull = g.teams?.home?.name ?? home;
-  const awayId = g.teams?.away?.id;
-  const homeId = g.teams?.home?.id;
-  const gameDate = g.gameDate
-    ? new Date(g.gameDate).toLocaleDateString([], { month: 'short', day: 'numeric' })
+  const awayLogo = g.teams?.away?.logo;
+  const homeLogo = g.teams?.home?.logo;
+  const matchDateRaw = g.fixture?.date ?? g.gameDate;
+  const gameDate = matchDateRaw
+    ? new Date(matchDateRaw).toLocaleDateString([], { month: 'short', day: 'numeric' })
     : '';
-  const gameTime = g.gameDate
-    ? new Date(g.gameDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  const gameTime = matchDateRaw
+    ? new Date(matchDateRaw).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     : '';
 
   return (
@@ -206,10 +211,10 @@ function MatchupHeader({ games, mode }) {
         <Typography component="span" sx={{ fontFamily: MONO, fontSize: '14px', color: C.cyan, opacity: 0.5 }}>[</Typography>
         <Box sx={{ textAlign: 'center' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}>
-            {awayId && (
+            {awayLogo && (
               <Box
                 component="img"
-                src={`https://www.mlb.com/team-logos/${awayId}.svg`}
+                src={awayLogo}
                 width={36}
                 height={36}
                 sx={{ objectFit: 'contain' }}
@@ -238,10 +243,10 @@ function MatchupHeader({ games, mode }) {
 
         <Box sx={{ textAlign: 'center' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}>
-            {homeId && (
+            {homeLogo && (
               <Box
                 component="img"
-                src={`https://www.mlb.com/team-logos/${homeId}.svg`}
+                src={homeLogo}
                 width={36}
                 height={36}
                 sx={{ objectFit: 'contain' }}
@@ -802,14 +807,14 @@ export default function AnalysisPanel({
         if (mode === 'parlay' && selectedGames.length > 1) {
           // Multi-game safe pick: send all gameIds
           body = {
-            gameIds: selectedGames.map(g => g.gamePk),
+            gameIds: selectedGames.map(g => getMatchId(g)),
             date:    selectedDate,
             lang,
           };
         } else {
           const g = selectedGames[0];
           body = {
-            gameId: g.gamePk,
+            gameId: getMatchId(g),
             date:   selectedDate,
             lang,
           };
@@ -818,7 +823,7 @@ export default function AnalysisPanel({
         const g = selectedGames[0];
         endpoint = `${API_URL}/api/analyze/game`;
         body = {
-          gameId:      g.gamePk,
+          gameId:      getMatchId(g),
           date:        selectedDate,
           lang,
           betType,
@@ -829,7 +834,7 @@ export default function AnalysisPanel({
       } else if (mode === 'parlay') {
         endpoint = `${API_URL}/api/analyze/parlay`;
         body = {
-          gameIds:     selectedGames.map(g => g.gamePk),
+          gameIds:     selectedGames.map(g => getMatchId(g)),
           date:        selectedDate,
           lang,
           betType,
@@ -891,7 +896,7 @@ export default function AnalysisPanel({
         for (const r of json.data.results) {
           if (r.data && !r.error) {
             // Find the matching game object for this result
-            const matchedGame = selectedGames.find(g => String(g.gamePk) === String(r.gameId));
+            const matchedGame = selectedGames.find(g => String(getMatchId(g)) === String(r.gameId));
             onSave?.({
               type: 'safe',
               // Pass the game as a single-element array so extractMatchup treats it like a single game
@@ -1064,7 +1069,7 @@ export default function AnalysisPanel({
                 : `G${i + 1}`;
               return (
                 <Box
-                  key={g.gamePk ?? i}
+                  key={getMatchId(g) ?? i}
                   sx={{
                     display: 'flex', alignItems: 'center', gap: '5px',
                     border: `1px solid ${badgeColor}44`,

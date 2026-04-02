@@ -4,24 +4,24 @@ import { C, BARLOW, MONO, SANS } from '../theme';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 export default function OracleChat({ lang = 'en', onBack }) {
-  const [games, setGames] = useState([]);
-  const [selectedGame, setSelectedGame] = useState(null);
+  const [matches, setMatches] = useState([]);
+  const [selectedMatch, setSelectedMatch] = useState(null);
   const [question, setQuestion] = useState('');
   const [conversation, setConversation] = useState([]);
   const [loading, setLoading] = useState(false);
   const chatEndRef = useRef(null);
 
-  // Fetch today's games
+  // Fetch today's matches
   useEffect(() => {
     const token = localStorage.getItem('hexa_token');
     const date = new Date().toISOString().split('T')[0];
-    fetch(`${API_URL}/api/games?date=${date}`, {
+    fetch(`${API_URL}/api/matches?date=${date}`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(r => r.json())
       .then(data => {
-        const gameList = data.data || data.games || data || [];
-        setGames(Array.isArray(gameList) ? gameList : []);
+        const matchList = data.data || data.matches || data || [];
+        setMatches(Array.isArray(matchList) ? matchList : []);
       })
       .catch(() => {});
   }, []);
@@ -32,7 +32,7 @@ export default function OracleChat({ lang = 'en', onBack }) {
   }, [conversation]);
 
   async function handleSend() {
-    if (!question.trim() || !selectedGame || loading) return;
+    if (!question.trim() || !selectedMatch || loading) return;
     const q = question.trim();
     setQuestion('');
     setLoading(true);
@@ -48,7 +48,7 @@ export default function OracleChat({ lang = 'en', onBack }) {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          gameId: selectedGame.gamePk || selectedGame.id,
+          gameId: selectedMatch.fixture?.id || selectedMatch.gamePk || selectedMatch.id,
           question: q,
           conversationHistory: conversation.reduce((acc, msg, i, arr) => {
             if (msg.role === 'user' && arr[i + 1]?.role === 'assistant') {
@@ -80,9 +80,9 @@ export default function OracleChat({ lang = 'en', onBack }) {
     }
   }
 
-  function getMatchup(game) {
-    const away = game.teams?.away?.team?.abbreviation || game.teams?.away?.abbreviation || game.away || '?';
-    const home = game.teams?.home?.team?.abbreviation || game.teams?.home?.abbreviation || game.home || '?';
+  function getMatchup(match) {
+    const away = match.teams?.away?.name || match.teams?.away?.abbreviation || match.away || '?';
+    const home = match.teams?.home?.name || match.teams?.home?.abbreviation || match.home || '?';
     return `${away} @ ${home}`;
   }
 
@@ -109,8 +109,8 @@ export default function OracleChat({ lang = 'en', onBack }) {
             ADMIN ONLY
           </span>
         </div>
-        {selectedGame && (
-          <button onClick={() => { setSelectedGame(null); setConversation([]); }} style={{
+        {selectedMatch && (
+          <button onClick={() => { setSelectedMatch(null); setConversation([]); }} style={{
             background: 'transparent', border: `1px solid ${C.border}`, color: C.textMuted,
             padding: '6px 12px', borderRadius: '3px', fontFamily: MONO, fontSize: '10px',
             cursor: 'pointer',
@@ -123,40 +123,42 @@ export default function OracleChat({ lang = 'en', onBack }) {
       <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
 
         {/* GAME SELECTOR */}
-        {!selectedGame ? (
+        {!selectedMatch ? (
           <div>
             <div style={{
               fontFamily: MONO, fontSize: '10px', color: C.textDim,
               letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '12px',
             }}>
-              {lang === 'es' ? 'SELECCIONA UN PARTIDO' : 'SELECT A GAME'}
+              {lang === 'es' ? 'SELECCIONA UN PARTIDO' : 'SELECT A MATCH'}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              {games.map((game, i) => (
-                <div key={i} onClick={() => setSelectedGame(game)} style={{
+              {matches.map((match, i) => (
+                <div key={i} onClick={() => setSelectedMatch(match)} style={{
                   padding: '12px 16px', background: C.surface, border: `1px solid ${C.border}`,
                   borderRadius: '3px', cursor: 'pointer', display: 'flex',
                   justifyContent: 'space-between', alignItems: 'center',
                   transition: 'border-color 0.2s',
                 }}>
                   <span style={{ fontFamily: BARLOW, fontWeight: 700, fontSize: '15px', color: C.textPrimary }}>
-                    {getMatchup(game)}
+                    {getMatchup(match)}
                   </span>
                   <span style={{ fontFamily: MONO, fontSize: '10px', color: C.textDim }}>
-                    {game.gameTime || game.time || ''}
+                    {match.fixture?.date
+                      ? new Date(match.fixture.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                      : match.gameTime || match.time || ''}
                   </span>
                 </div>
               ))}
-              {games.length === 0 && (
+              {matches.length === 0 && (
                 <div style={{ fontFamily: MONO, fontSize: '12px', color: C.textDim, padding: '20px', textAlign: 'center' }}>
-                  {lang === 'es' ? 'No hay partidos hoy' : 'No games today'}
+                  {lang === 'es' ? 'No hay partidos hoy' : 'No matches today'}
                 </div>
               )}
             </div>
           </div>
         ) : (
           <>
-            {/* SELECTED GAME BADGE */}
+            {/* SELECTED MATCH BADGE */}
             <div style={{
               fontFamily: MONO, fontSize: '10px', color: C.accent, letterSpacing: '2px',
               marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px',
@@ -165,7 +167,7 @@ export default function OracleChat({ lang = 'en', onBack }) {
                 background: C.accentDim, border: `1px solid ${C.accentLine}`,
                 padding: '4px 10px', borderRadius: '3px',
               }}>
-                {getMatchup(selectedGame)}
+                {getMatchup(selectedMatch)}
               </span>
               <span style={{ color: C.textDim }}>
                 {conversation.length > 0

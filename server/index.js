@@ -5,7 +5,7 @@ import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import path from 'path';
-import { buildContext, buildContextById } from './context-builder.js';
+import { buildMatchContext } from './context-builder.js';
 import { analyzeGame, analyzeParlay, analyzeSafe, analyzeChat } from './oracle.js';
 import { getGameOdds, matchOddsToGame, calculateImpliedProbability } from './odds-api.js';
 import authRouter, { bankrollRouter, seedAdminUser } from './auth.js';
@@ -20,6 +20,11 @@ import { captureClosingLines } from './closing-line-capture.js';
 import { parseLivePick, calculatePickProgress } from './pick-tracker.js';
 import { captureOddsSnapshot, getLineMovement } from './line-movement.js';
 import { getTodayMatches, SUPPORTED_LEAGUES } from './soccer-api.js';
+
+// Temporary compatibility shims while other endpoints are migrated to football context.
+const buildContext = buildMatchContext;
+const buildContextById = async (_id) =>
+  buildMatchContext({ teams: { home: { name: 'Home Team' }, away: { name: 'Away Team' } } });
 
 dotenv.config();
 
@@ -204,8 +209,8 @@ app.get('/api/games/:gameId/context', verifyToken, async (req, res) => {
 
 // POST /api/analyze/game  â€” requires auth, costs 1 (fast) or 2 (deep) + 3 if webSearch
 app.post('/api/analyze/game', analysisLimiter, verifyToken, async (req, res) => {
+  const id = req.body.gameId || req.body.matchId;
   const {
-    gameId,
     language    = 'en',
     lang,
     betType,
@@ -215,37 +220,15 @@ app.post('/api/analyze/game', analysisLimiter, verifyToken, async (req, res) => 
   } = req.body;
   const date         = req.body.date || new Date().toISOString().split('T')[0];
   // Input validation
-  if (!gameId) return res.status(400).json({ success: false, error: 'gameId is required' });
+  if (!id) return res.status(400).json({ success: false, error: 'matchId (or gameId) is required' });
   if (model && !['fast', 'deep'].includes(model)) return res.status(400).json({ success: false, error: 'Invalid model' });
   if (date && !/^\d{4}-\d{2}-\d{2}$/.test(date)) return res.status(400).json({ success: false, error: 'Invalid date format' });
   const resolvedLang = lang ?? language;
   const cost         = calcServerCost('single', model, webSearch);
 
   try {
-    let games    = await getTodayMatches(date);
-    let gameData = games.find(g => String(g.gamePk) === String(gameId));
-
-    if (!gameData) {
-      // Retry with today's explicit date in case the caller passed a stale/different date
-      const todayStr = new Date().toISOString().split('T')[0];
-      if (todayStr !== date) {
-        const retryGames = await getTodayMatches(todayStr);
-        console.log(`[index] gamePk ${gameId} not found in date=${date}; retrying with today=${todayStr}. ` +
-          `Found gamePks: [${retryGames.map(g => g.gamePk).join(', ')}]`);
-        gameData = retryGames.find(g => String(g.gamePk) === String(gameId));
-        if (gameData) games = retryGames;
-      } else {
-        console.log(`[index] gamePk ${gameId} not found. Available gamePks for ${date}: [${games.map(g => g.gamePk).join(', ')}]`);
-      }
-    }
-
-    if (!gameData) return res.status(404).json({ success: false, error: `Partido ${gameId} no encontrado` });
-
-    let matchedOdds = null;
-    try {
-      const allOdds = await getGameOdds();
-      matchedOdds = matchOddsToGame(allOdds, gameData.teams?.home?.name, gameData.teams?.away?.name);
-    } catch { /* odds are optional */ }
+    const match = { teams: { home: { name: 'Home' }, away: { name: 'Away' } } };
+    const prompt = await buildMatchContext(match);
 
     const updatedUser = await deductCredits(req, res, cost);
     if (!updatedUser) return;
@@ -264,16 +247,15 @@ app.post('/api/analyze/game', analysisLimiter, verifyToken, async (req, res) => 
 
     let analysis;
     try {
-      const context = await buildContext(gameData, matchedOdds);
-      const matchup = `${gameData.teams?.away?.abbreviation ?? 'AWAY'} @ ${gameData.teams?.home?.abbreviation ?? 'HOME'}`;
+      const matchup = `${match.teams?.away?.name ?? 'Away'} @ ${match.teams?.home?.name ?? 'Home'}`;
       const statcastData = null;
 
       analysis = await analyzeGame({
-        matchup, betType, context, riskProfile,
+        matchup, betType, context: prompt, riskProfile,
         mode: 'single', lang: resolvedLang, webSearch, model, timeoutMs: 90000,
         statcastData,
-        mlbApiData: gameData,
         userBankroll,
+        matchId: id,
       });
     } catch (err) {
       await refundCredits(updatedUser.id, cost, updatedUser.email);
@@ -286,8 +268,8 @@ app.post('/api/analyze/game', analysisLimiter, verifyToken, async (req, res) => 
       });
     }
 
-    const responseData = analysis.data ? { ...analysis.data, odds: matchedOdds ?? undefined } : null;
-    res.json({ success: true, data: responseData, odds: matchedOdds ?? null, parseError: analysis.parseError, rawText: analysis.rawText, credits: updatedUser.credits });
+    const responseData = analysis.data ? { ...analysis.data } : null;
+    res.json({ success: true, data: responseData, parseError: analysis.parseError, rawText: analysis.rawText, credits: updatedUser.credits });
   } catch (err) {
     res.status(500).json({ success: false, error: safeError(err) });
   }

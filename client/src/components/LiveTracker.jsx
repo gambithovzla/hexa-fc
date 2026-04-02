@@ -3,7 +3,7 @@
  *
  * Real-time scoreboard, diamond situation, play-by-play feed,
  * and pick progress bars for all in-progress MLB games.
- * Polls /api/games/live every 30 seconds.
+ * Polls /api/matches/live every 30 seconds.
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -669,34 +669,23 @@ export default function LiveTracker({ lang = 'en' }) {
   const fetchLiveData = useCallback(async () => {
     setLoading(true);
     try {
-      // 1. Get today's games
+      // 1. Get today's matches
       const etNow = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }));
       etNow.setHours(etNow.getHours() - 5);
       const today    = etNow.toLocaleDateString('en-CA');
-      const gamesRes = await fetch(`${API_URL}/api/games?date=${today}`);
-      const gamesJson = await gamesRes.json();
-      const allGames  = gamesJson.success ? gamesJson.data : [];
+      const matchesRes = await fetch(`${API_URL}/api/matches?date=${today}`);
+      const matchesJson = await matchesRes.json();
+      const allMatches  = matchesJson.success ? matchesJson.data : [];
 
-      // 2. Filter live games
-      const liveGamePks = allGames
+      // 2. Filter live matches
+      const liveMatchIds = allMatches
         .filter(g => {
-          const simplified = (g.status?.simplified ?? '').toLowerCase();
-          const abstract   = (g.status?.abstractGameState ?? '').toLowerCase();
-          const detailed   = (g.status?.detailedState ?? g.status?.description ?? '').toLowerCase();
-          const code       = g.status?.code ?? g.status?.codedGameState ?? '';
-          return (
-            simplified === 'live' ||
-            abstract   === 'live' ||
-            detailed   === 'in progress' ||
-            detailed   === 'warmup' ||
-            detailed   === 'manager challenge' ||
-            code       === 'I' ||
-            code       === 'MA'
-          );
+          const short = String(g.fixture?.status?.short ?? '').toUpperCase();
+          return short && short !== 'NS' && short !== 'FT' && short !== 'AET' && short !== 'PEN';
         })
-        .map(g => g.gamePk);
+        .map(g => g.fixture?.id ?? g.gamePk);
 
-      if (liveGamePks.length === 0) {
+      if (liveMatchIds.length === 0) {
         setLiveGames([]);
         setLoading(false);
         setLastUpdate(new Date());
@@ -704,10 +693,10 @@ export default function LiveTracker({ lang = 'en' }) {
       }
 
       // 3. Fetch live data
-      const liveRes  = await fetch(`${API_URL}/api/games/live`, {
+      const liveRes  = await fetch(`${API_URL}/api/matches/live`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ gamePks: liveGamePks }),
+        body:    JSON.stringify({ matchIds: liveMatchIds }),
       });
       const liveJson = await liveRes.json();
       if (liveJson.success) setLiveGames(liveJson.data);

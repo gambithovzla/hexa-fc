@@ -5,31 +5,39 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 export default function useGames() {
   const today = new Date().toISOString().split('T')[0];
   const [date, setDate] = useState(today);
-  const [games, setGames] = useState([]);
-  const [gamesLoading, setGamesLoading] = useState(false);
+  const [matches, setMatches] = useState([]);
+  const [matchesLoading, setMatchesLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
-    setGamesLoading(true);
+    setMatchesLoading(true);
     setError(null);
 
-    fetch(`${API_URL}/api/games?date=${date}`)
+    fetch(`${API_URL}/api/matches?date=${date}`)
       .then(res => res.json())
       .then(json => {
         if (cancelled) return;
-        if (json.success) setGames(json.data);
+        if (json.success) setMatches(json.data);
         else setError(json.error);
       })
       .catch(err => {
         if (!cancelled) setError(err.message);
       })
       .finally(() => {
-        if (!cancelled) setGamesLoading(false);
+        if (!cancelled) setMatchesLoading(false);
       });
 
     return () => { cancelled = true; };
   }, [date]);
 
-  return { games, date, setDate, gamesLoading, error };
+  return {
+    matches,
+    games: matches, // backward compatibility
+    date,
+    setDate,
+    matchesLoading,
+    gamesLoading: matchesLoading, // backward compatibility
+    error,
+  };
 }
