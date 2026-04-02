@@ -13,7 +13,7 @@ import { Box, Typography } from '@mui/material';
 import { C, MONO, BARLOW } from '../theme';
 import { useAuth } from '../store/authStore';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export default function AdminCreditPanel({ lang = 'en', onClose }) {
   const { token } = useAuth();
@@ -243,3 +243,4 @@ export default function AdminCreditPanel({ lang = 'en', onClose }) {
     </Box>
   );
 }
+

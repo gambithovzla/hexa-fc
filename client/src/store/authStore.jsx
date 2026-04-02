@@ -14,7 +14,7 @@ import { createContext, useContext, useState, useEffect, useCallback } from 'rea
 const AuthContext = createContext(null);
 
 const TOKEN_KEY = 'hexa_token';
-const API_URL   = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_URL   = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export function AuthProvider({ children }) {
   const [user,            setUser]            = useState(null);
@@ -113,3 +113,4 @@ export function useAuth() {
   if (!ctx) throw new Error('useAuth must be used within AuthProvider');
   return ctx;
 }
+

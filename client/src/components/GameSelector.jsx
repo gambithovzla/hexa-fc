@@ -3,7 +3,7 @@ import { Box, Checkbox, Skeleton, Typography } from '@mui/material';
 import { SoccerBall } from 'lucide-react';
 import { C, BARLOW, MONO, SANS } from '../theme';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 const L = {
   en: {

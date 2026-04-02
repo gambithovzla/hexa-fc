@@ -329,7 +329,7 @@ function AnalisisTab({ lang }) {
   const t = TRANSLATIONS[lang] ?? TRANSLATIONS.en;
   const { isAuthenticated, token } = useAuth();
   const { history, markResult, deletePick, clearHistory, getStats, loadHistory } = useHistory();
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
   const stats = getStats();
   const [confirming, setConfirming] = useState(false);
   const confirmTimeout = useRef(null);
@@ -868,3 +868,4 @@ export default function HistoryPanel({ lang = 'en' }) {
     </Box>
   );
 }
+
