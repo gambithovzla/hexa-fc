@@ -1,9 +1,9 @@
-/**
- * line-movement.js — Line Movement Tracking for H.E.X.A. V4
+﻿/**
+ * line-movement.js â€” Line Movement Tracking for H.E.X.A. V4
  *
  * Exports:
- *   captureOddsSnapshot()                          — snapshot current odds for all today's games
- *   getLineMovement(homeTeam, awayTeam, gameDate)  — compute movement between first/last snapshot
+ *   captureOddsSnapshot()                          â€” snapshot current odds for all today's games
+ *   getLineMovement(homeTeam, awayTeam, gameDate)  â€” compute movement between first/last snapshot
  */
 
 import pool from './db.js';
@@ -14,8 +14,8 @@ import { getGameOdds } from './odds-api.js';
 // ---------------------------------------------------------------------------
 
 /**
- * Fetches current MLB odds and stores a snapshot for every real game (non-mock).
- * Safe to call multiple times — each call inserts a new timestamped row.
+ * Fetches current EURO FOOTBALL odds and stores a snapshot for every real game (non-mock).
+ * Safe to call multiple times â€” each call inserts a new timestamped row.
  *
  * @returns {Promise<{ captured: number, games: string[] }>}
  */
@@ -26,7 +26,7 @@ export async function captureOddsSnapshot() {
   const realOdds = allOdds.filter(g => g.source !== 'estimated_spring_training');
 
   if (!realOdds.length) {
-    console.log('[line-movement] No real-odds games available — snapshot skipped');
+    console.log('[line-movement] No real-odds games available â€” snapshot skipped');
     return { captured: 0, games: [] };
   }
 
@@ -86,7 +86,7 @@ export async function captureOddsSnapshot() {
  *
  * @param {string} homeTeam
  * @param {string} awayTeam
- * @param {string} gameDate  — YYYY-MM-DD
+ * @param {string} gameDate  â€” YYYY-MM-DD
  * @returns {Promise<object|null>}  null when fewer than 2 snapshots exist
  */
 export async function getLineMovement(homeTeam, awayTeam, gameDate) {
@@ -162,3 +162,4 @@ export async function getLineMovement(homeTeam, awayTeam, gameDate) {
 function slugify(name) {
   return String(name).toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
 }
+

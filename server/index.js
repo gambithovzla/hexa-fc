@@ -1,10 +1,10 @@
+﻿import 'dotenv/config';
+import path from 'path';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
-import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
-import path from 'path';
 import { buildMatchContext } from './context-builder.js';
 import { analyzeGame, analyzeParlay, analyzeSafe, analyzeChat } from './oracle.js';
 import { getGameOdds, matchOddsToGame, calculateImpliedProbability } from './odds-api.js';
@@ -21,16 +21,20 @@ import { parseLivePick, calculatePickProgress } from './pick-tracker.js';
 import { captureOddsSnapshot, getLineMovement } from './line-movement.js';
 import { getTodayMatches, getMatchById, SUPPORTED_LEAGUES, ODDS_API_MAP } from './soccer-api.js';
 
+console.log('--- DEBUG ENTORNO ---');
+console.log('Ruta ejecuciÃ³n:', process.cwd());
+console.log('Llave Football:', process.env.FOOTBALL_API_KEY ? 'Detectada (OK)' : 'NO DETECTADA');
+console.log('Llave Odds:', process.env.ODDS_API_KEY ? 'Detectada (OK)' : 'NO DETECTADA');
+console.log('---------------------');
+
 // Temporary compatibility shims while other endpoints are migrated to football context.
 const buildContext = buildMatchContext;
 const buildContextById = async (_id) =>
   buildMatchContext({ teams: { home: { name: 'Home Team' }, away: { name: 'Away Team' } } });
 
-dotenv.config();
-
 const __dirname = path.dirname(fileURLToPath(import.meta.url)); // eslint-disable-line no-unused-vars
 
-// â”€â”€ Safe error helper â€” never leak internal details to client â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬ Safe error helper Ã¢â‚¬â€ never leak internal details to client Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 function safeError(err) {
   if (process.env.NODE_ENV === 'production') {
     console.error('[H.E.X.A. Error]', err.message, err.stack?.split('\n')[1]);
@@ -43,13 +47,13 @@ const app = express();
 app.set('trust proxy', 1);
 const PORT = process.env.PORT || 3000;
 
-// â”€â”€ CORS: strict origin (must be first) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬ CORS: strict origin (must be first) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 app.use(cors({
   origin: ['https://hexaoracle.lat', 'https://www.hexaoracle.lat', 'http://localhost:5173', /\.vercel\.app$/],
   credentials: true,
 }));
 
-// â”€â”€ Security: HTTP headers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬ Security: HTTP headers Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -67,7 +71,7 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
 
-// â”€â”€ Rate limiting: 100 req / 15 min per IP (webhooks exempt) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬ Rate limiting: 100 req / 15 min per IP (webhooks exempt) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 1000,
@@ -79,7 +83,7 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// â”€â”€ Strict rate limiting for analysis endpoints (consume Anthropic API) â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬ Strict rate limiting for analysis endpoints (consume Anthropic API) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 const analysisLimiter = rateLimit({
   windowMs: 60 * 1000,   // 1 minute window
   max: 10,               // max 10 analysis requests per minute per IP
@@ -88,19 +92,19 @@ const analysisLimiter = rateLimit({
   message: { success: false, error: 'Too many analysis requests. Please wait a moment.' },
 });
 
-// â”€â”€ Body parsers (raw must come before json for webhook routes) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬ Body parsers (raw must come before json for webhook routes) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 app.use('/api/lemon/webhook', express.raw({ type: 'application/json' }));
 app.use('/api/bmc/webhook',   express.raw({ type: 'application/json' }));
 app.use(express.json({ limit: '1mb' }));
 
-// â”€â”€ Auth routes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬ Auth routes Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 app.use('/api/auth',      authRouter);
 app.use('/api/bankroll',  bankrollRouter);
 app.use('/api/lemon',     lemonRouter);
 app.use('/api/picks',     picksRouter);
 app.post('/api/bmc/webhook', handleBMCWebhook);
 
-// â”€â”€ Credit helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬ Credit helpers Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 const CREDIT_COSTS = {
   single:  { fast: 1,  deep: 2  },
@@ -161,7 +165,7 @@ async function refundCredits(userId, cost, email) {
   }
 }
 
-// â”€â”€ Admin middleware â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬ Admin middleware Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 function isAdmin(req, res, next) {
   if (req.user.email !== 'cdanielrr@hotmail.com') {
@@ -197,7 +201,7 @@ app.get('/api/leagues', (_req, res) => {
   res.json(SUPPORTED_LEAGUES);
 });
 
-// GET /api/games/:gameId/context  â€” devuelve el contexto en texto plano
+// GET /api/games/:gameId/context  Ã¢â‚¬â€ devuelve el contexto en texto plano
 app.get('/api/games/:gameId/context', verifyToken, async (req, res) => {
   try {
     const context = await buildContextById(req.params.gameId);
@@ -207,7 +211,7 @@ app.get('/api/games/:gameId/context', verifyToken, async (req, res) => {
   }
 });
 
-// POST /api/analyze/game  â€” requires auth, costs 1 (fast) or 2 (deep) + 3 if webSearch
+// POST /api/analyze/game  Ã¢â‚¬â€ requires auth, costs 1 (fast) or 2 (deep) + 3 if webSearch
 app.post('/api/analyze/game', analysisLimiter, verifyToken, async (req, res) => {
   const id = req.body.gameId || req.body.matchId;
   const {
@@ -265,7 +269,7 @@ app.post('/api/analyze/game', analysisLimiter, verifyToken, async (req, res) => 
       if (brResult.rows.length > 0) {
         userBankroll = parseFloat(brResult.rows[0].current_bankroll);
       }
-    } catch { /* bankroll is optional â€” never block the analysis */ }
+    } catch { /* bankroll is optional Ã¢â‚¬â€ never block the analysis */ }
 
     let analysis;
     try {
@@ -285,8 +289,8 @@ app.post('/api/analyze/game', analysisLimiter, verifyToken, async (req, res) => 
       return res.status(500).json({
         success: false,
         error: isTimeout
-          ? 'El anÃ¡lisis tardÃ³ demasiado. CrÃ©ditos reembolsados. Por favor reintenta.'
-          : 'AnÃ¡lisis fallido. Tus crÃ©ditos han sido reembolsados.',
+          ? 'El anÃƒÂ¡lisis tardÃƒÂ³ demasiado. CrÃƒÂ©ditos reembolsados. Por favor reintenta.'
+          : 'AnÃƒÂ¡lisis fallido. Tus crÃƒÂ©ditos han sido reembolsados.',
       });
     }
 
@@ -297,7 +301,7 @@ app.post('/api/analyze/game', analysisLimiter, verifyToken, async (req, res) => 
   }
 });
 
-// POST /api/analyze/parlay  â€” requires auth, costs 4 (fast) or 8 (deep) credits
+// POST /api/analyze/parlay  Ã¢â‚¬â€ requires auth, costs 4 (fast) or 8 (deep) credits
 app.post('/api/analyze/parlay', analysisLimiter, verifyToken, async (req, res) => {
   const {
     gameIds,
@@ -348,8 +352,8 @@ app.post('/api/analyze/parlay', analysisLimiter, verifyToken, async (req, res) =
       return res.status(500).json({
         success: false,
         error: isTimeout
-          ? 'El anÃ¡lisis tardÃ³ demasiado. CrÃ©ditos reembolsados. Por favor reintenta.'
-          : 'AnÃ¡lisis fallido. Tus crÃ©ditos han sido reembolsados.',
+          ? 'El anÃƒÂ¡lisis tardÃƒÂ³ demasiado. CrÃƒÂ©ditos reembolsados. Por favor reintenta.'
+          : 'AnÃƒÂ¡lisis fallido. Tus crÃƒÂ©ditos han sido reembolsados.',
       });
     }
 
@@ -362,7 +366,7 @@ app.post('/api/analyze/parlay', analysisLimiter, verifyToken, async (req, res) =
   }
 });
 
-// POST /api/analyze/safe â€” Safe Pick mode (supports single gameId or multiple gameIds for parlay safe picks)
+// POST /api/analyze/safe Ã¢â‚¬â€ Safe Pick mode (supports single gameId or multiple gameIds for parlay safe picks)
 app.post('/api/analyze/safe', analysisLimiter, verifyToken, async (req, res) => {
   const { gameId, gameIds, lang = 'en', date } = req.body;
   const resolvedDate = date || new Date().toISOString().split('T')[0];
@@ -478,7 +482,7 @@ app.post('/api/analyze/safe', analysisLimiter, verifyToken, async (req, res) => 
   }
 });
 
-// POST /api/admin/grant-credits â€” Manually add credits to a user (admin only)
+// POST /api/admin/grant-credits Ã¢â‚¬â€ Manually add credits to a user (admin only)
 app.post('/api/admin/grant-credits', verifyToken, isAdmin, async (req, res) => {
   const { email, amount } = req.body;
 
@@ -511,7 +515,7 @@ app.post('/api/admin/grant-credits', verifyToken, isAdmin, async (req, res) => {
   }
 });
 
-// POST /api/analyze/batch â€” Admin Batch Scan: analyze multiple games individually in parallel
+// POST /api/analyze/batch Ã¢â‚¬â€ Admin Batch Scan: analyze multiple games individually in parallel
 app.post('/api/analyze/batch', analysisLimiter, verifyToken, isAdmin, async (req, res) => {
   const { gameIds, lang = 'es', date } = req.body;
 
@@ -700,7 +704,7 @@ app.post('/api/analyze/batch', analysisLimiter, verifyToken, isAdmin, async (req
   }
 });
 
-// POST /api/analyze/chat â€” Direct chat with Oracle (admin only, no credits)
+// POST /api/analyze/chat Ã¢â‚¬â€ Direct chat with Oracle (admin only, no credits)
 app.post('/api/analyze/chat', analysisLimiter, verifyToken, isAdmin, async (req, res) => {
   const { gameId, question, conversationHistory = [], lang = 'en', date } = req.body;
 
@@ -750,7 +754,7 @@ app.post('/api/analyze/chat', analysisLimiter, verifyToken, isAdmin, async (req,
   }
 });
 
-// GET /api/auth/is-admin â€” check if the authenticated user is admin
+// GET /api/auth/is-admin Ã¢â‚¬â€ check if the authenticated user is admin
 app.get('/api/auth/is-admin', verifyToken, (req, res) => {
   res.json({ isAdmin: req.user.email === 'cdanielrr@hotmail.com' });
 });
@@ -760,7 +764,7 @@ app.post('/api/picks/live-progress', verifyToken, async (_req, res) => {
   res.json({ success: true, data: [] });
 });
 
-// GET /api/picks/resolve â€” manually trigger pick resolution (admin/testing)
+// GET /api/picks/resolve Ã¢â‚¬â€ manually trigger pick resolution (admin/testing)
 app.get('/api/picks/resolve', verifyToken, async (_req, res) => {
   try {
     const summary = await resolvePendingPicks();
@@ -814,7 +818,7 @@ app.post('/api/picks', verifyToken, async (req, res) => {
   }
 });
 
-// GET /api/picks/clv-stats â€” CLV dashboard stats for authenticated user
+// GET /api/picks/clv-stats Ã¢â‚¬â€ CLV dashboard stats for authenticated user
 app.get('/api/picks/clv-stats', verifyToken, async (req, res) => {
   try {
     const userId = req.user.id;
@@ -854,8 +858,8 @@ app.get('/api/picks/clv-stats', verifyToken, async (req, res) => {
     for (const row of allWithCLV) {
       const p = (row.pick ?? '').toLowerCase();
       let betType = 'moneyline';
-      if (/over|under|m[aÃ¡]s\s+de|menos\s+de|alta|baja/i.test(p)) betType = 'over_under';
-      else if (/run\s+line|rl|l[iÃ­]nea\s+de\s+carrera/i.test(p)) betType = 'runline';
+      if (/over|under|m[aÃƒÂ¡]s\s+de|menos\s+de|alta|baja/i.test(p)) betType = 'over_under';
+      else if (/run\s+line|rl|l[iÃƒÂ­]nea\s+de\s+carrera/i.test(p)) betType = 'runline';
 
       betTypeMap[betType].count++;
       betTypeMap[betType].totalCLV += parseFloat(row.clv);
@@ -900,7 +904,7 @@ app.get('/api/picks/clv-stats', verifyToken, async (req, res) => {
   }
 });
 
-// GET /api/picks â€” obtiene el historial del usuario
+// GET /api/picks Ã¢â‚¬â€ obtiene el historial del usuario
 app.get('/api/picks', verifyToken, async (req, res) => {
   try {
     const { rows } = await pool.query(
@@ -913,7 +917,7 @@ app.get('/api/picks', verifyToken, async (req, res) => {
   }
 });
 
-// PATCH /api/picks/:id â€” actualiza resultado (win/loss/pending)
+// PATCH /api/picks/:id Ã¢â‚¬â€ actualiza resultado (win/loss/pending)
 app.patch('/api/picks/:id', verifyToken, async (req, res) => {
   try {
     const { result } = req.body;
@@ -928,7 +932,7 @@ app.patch('/api/picks/:id', verifyToken, async (req, res) => {
   }
 });
 
-// DELETE /api/picks/:id â€” elimina un pick individual del historial
+// DELETE /api/picks/:id Ã¢â‚¬â€ elimina un pick individual del historial
 app.delete('/api/picks/:id', verifyToken, async (req, res) => {
   try {
     const { rows } = await pool.query(
@@ -942,7 +946,7 @@ app.delete('/api/picks/:id', verifyToken, async (req, res) => {
   }
 });
 
-// DELETE /api/picks â€” elimina todo el historial del usuario autenticado
+// DELETE /api/picks Ã¢â‚¬â€ elimina todo el historial del usuario autenticado
 app.delete('/api/picks', verifyToken, async (req, res) => {
   try {
     await pool.query('DELETE FROM picks WHERE user_id = $1', [req.user.id]);
@@ -952,7 +956,7 @@ app.delete('/api/picks', verifyToken, async (req, res) => {
   }
 });
 
-// GET /api/odds/movement â€” line movement data for a specific game
+// GET /api/odds/movement Ã¢â‚¬â€ line movement data for a specific game
 app.get('/api/odds/movement', verifyToken, async (req, res) => {
   try {
     const { home, away, date } = req.query;
@@ -969,14 +973,14 @@ app.get('/api/odds/movement', verifyToken, async (req, res) => {
   }
 });
 
-// â”€â”€ Startup: run migrations â†’ seed admin â†’ start server â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬ Startup: run migrations Ã¢â€ â€™ seed admin Ã¢â€ â€™ start server Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 runMigrations()
   .then(() => seedAdminUser())
   .then(() => {
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`Hexa-v4 server running on http://0.0.0.0:${PORT}`);
 
-      // â”€â”€ Line movement snapshot: every 6 hours between 9amâ€“7pm ET â”€â”€â”€â”€â”€â”€â”€â”€
+      // Ã¢â€â‚¬Ã¢â€â‚¬ Line movement snapshot: every 6 hours between 9amÃ¢â‚¬â€œ7pm ET Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
       const SIX_HOURS_LM = 6 * 60 * 60 * 1000;
       setInterval(() => {
         const etHour = parseInt(
@@ -985,7 +989,7 @@ runMigrations()
           }).format(new Date()),
           10
         );
-        // Window: 09:00â€“18:59 ET (lines open in the morning, games start ~18:00+)
+        // Window: 09:00Ã¢â‚¬â€œ18:59 ET (lines open in the morning, games start ~18:00+)
         if (etHour >= 9 && etHour < 19) {
           console.log(`[line-movement] Scheduled snapshot triggered (ET hour: ${etHour})`);
           captureOddsSnapshot().catch(err => {
@@ -994,7 +998,7 @@ runMigrations()
         }
       }, SIX_HOURS_LM).unref();
 
-      // â”€â”€ Pick resolver: every 30 min between 7pmâ€“6am ET â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+      // Ã¢â€â‚¬Ã¢â€â‚¬ Pick resolver: every 30 min between 7pmÃ¢â‚¬â€œ6am ET Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
       const THIRTY_MIN = 30 * 60 * 1000;
       setInterval(() => {
         // Get current hour in US Eastern Time (handles EDT/EST automatically)
@@ -1004,7 +1008,7 @@ runMigrations()
           }).format(new Date()),
           10
         );
-        // Window: 19:00â€“05:59 ET (west coast games finish ~7pm ET; extras/rain delays can run past 3am)
+        // Window: 19:00Ã¢â‚¬â€œ05:59 ET (west coast games finish ~7pm ET; extras/rain delays can run past 3am)
         if (etHour >= 19 || etHour < 6) {
           console.log(`[pick-resolver] Scheduled run triggered (ET hour: ${etHour})`);
           resolvePendingPicks().catch(err => {
@@ -1013,7 +1017,7 @@ runMigrations()
         }
       }, THIRTY_MIN).unref();
 
-      // â”€â”€ Closing line capture: every 2 hours between 5pmâ€“1am ET â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+      // Ã¢â€â‚¬Ã¢â€â‚¬ Closing line capture: every 2 hours between 5pmÃ¢â‚¬â€œ1am ET Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
       const TWO_HOURS = 2 * 60 * 60 * 1000;
       setInterval(() => {
         const etHour = parseInt(
@@ -1022,7 +1026,7 @@ runMigrations()
           }).format(new Date()),
           10
         );
-        // Closing line capture: 17:00â€“00:59 ET (before and during MLB game windows)
+        // Closing line capture: 17:00Ã¢â‚¬â€œ00:59 ET (before and during EURO FOOTBALL game windows)
         if (etHour >= 17 || etHour < 1) {
           console.log(`[closing-line] Scheduled capture triggered (ET hour: ${etHour})`);
           captureClosingLines().catch(err => {
@@ -1036,6 +1040,7 @@ runMigrations()
     console.error('[H.E.X.A.] Startup failed:', err.message);
     process.exit(1);
   });
+
 
 
 

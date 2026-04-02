@@ -1,7 +1,7 @@
-{
+﻿{
   "app": {
     "title": "Hexa Oracle",
-    "subtitle": "MLB Intelligence Platform"
+    "subtitle": "EURO FOOTBALL Intelligence Platform"
   },
   "nav": {
     "game": "Game Analysis",
@@ -14,7 +14,7 @@
     "date": "Date",
     "noGames": "No games scheduled for this date.",
     "analyze": "Analyze Game",
-    "analyzing": "Analyzing…",
+    "analyzing": "Analyzingâ€¦",
     "selectHint": "Select a game first"
   },
   "analysis": {
@@ -31,7 +31,7 @@
     "selectGames": "Select games for your parlay",
     "selected": "selected",
     "analyze": "Analyze Parlay",
-    "analyzing": "Analyzing…",
+    "analyzing": "Analyzingâ€¦",
     "min": "Select at least 2 games.",
     "grade": "Parlay Grade",
     "confidence": "Overall Confidence",
@@ -42,7 +42,7 @@
   "fullday": {
     "title": "Full Day Slate Analysis",
     "analyze": "Analyze Today's Slate",
-    "analyzing": "Analyzing…",
+    "analyzing": "Analyzingâ€¦",
     "grade": "Slate Grade",
     "topPicks": "Top Picks",
     "avoid": "Games to Avoid",
@@ -77,7 +77,7 @@
       "push": "PUSH",
       "pending": "PENDING"
     },
-    "noPickExtracted": "—",
+    "noPickExtracted": "â€”",
     "confidence": "Confidence"
   },
   "confidence": {
@@ -100,3 +100,4 @@
     "noOdds": "Odds unavailable"
   }
 }
+

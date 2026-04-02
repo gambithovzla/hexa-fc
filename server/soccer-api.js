@@ -1,12 +1,11 @@
 import axios from 'axios';
 
 const API_BASE_URL = 'https://v3.football.api-sports.io';
-const API_KEY = process.env.FOOTBALL_API_KEY;
 
 const axiosConfig = {
   baseURL: API_BASE_URL,
   headers: {
-    'x-apisports-key': API_KEY,
+    'x-apisports-key': process.env.FOOTBALL_API_KEY,
   },
 };
 
@@ -30,14 +29,16 @@ export const ODDS_API_MAP = {
 
 export async function getTodayMatches(dateStr) {
   try {
-    if (!API_KEY) {
+    const apiKey = process.env.FOOTBALL_API_KEY;
+
+    if (!apiKey) {
       console.error('[soccer-api] Missing FOOTBALL_API_KEY.');
       return [];
     }
 
     const response = await axios.get(`${API_BASE_URL}/fixtures`, {
       headers: {
-        'x-apisports-key': process.env.FOOTBALL_API_KEY,
+        'x-apisports-key': apiKey,
       },
       params: { date: dateStr },
     });
@@ -75,4 +76,4 @@ export async function getTeamStats(teamId, leagueId, season) {
   return {};
 }
 
-export { axios, API_KEY, axiosConfig };
+export { axios, axiosConfig };

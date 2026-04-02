@@ -1,18 +1,18 @@
-/**
+﻿/**
  * HexaHelpModal.jsx
- * "¿Cómo funciona H.E.X.A.?" — 3-tab educational modal.
+ * "Â¿CÃ³mo funciona H.E.X.A.?" â€” 3-tab educational modal.
  *
  * Props:
- *   open    — boolean
- *   onClose — () => void
- *   lang    — 'en' | 'es'
+ *   open    â€” boolean
+ *   onClose â€” () => void
+ *   lang    â€” 'en' | 'es'
  */
 
 import { useState } from 'react';
 import { Box, Typography } from '@mui/material';
 import { C, BARLOW, MONO, SANS } from '../theme';
 
-// ── Sub-components ────────────────────────────────────────────────────────────
+// â”€â”€ Sub-components â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function ModeCard({ icon, title, cost, description }) {
   return (
@@ -93,57 +93,57 @@ function DataSourceCard({ icon, title, description }) {
   );
 }
 
-// ── Tab content ───────────────────────────────────────────────────────────────
+// â”€â”€ Tab content â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function TabModes({ lang }) {
   const isEs = lang === 'es';
   const modes = [
     {
-      icon: '🛡️',
+      icon: 'ðŸ›¡ï¸',
       title: 'SAFE PICK',
-      cost: isEs ? '2 créditos (siempre Deep)' : '2 credits (always Deep)',
+      cost: isEs ? '2 crÃ©ditos (siempre Deep)' : '2 credits (always Deep)',
       description: isEs
-        ? 'H.E.X.A. evalúa TODOS los tipos de apuesta (Moneyline, Run Line, Over/Under, Props) y entrega el pick con mayor probabilidad de acierto. Sin importar edge ni value.'
+        ? 'H.E.X.A. evalÃºa TODOS los tipos de apuesta (Moneyline, Run Line, Over/Under, Props) y entrega el pick con mayor probabilidad de acierto. Sin importar edge ni value.'
         : 'H.E.X.A. evaluates ALL bet types (Moneyline, Run Line, Over/Under, Props) and delivers the pick with the highest probability of hitting. Ignores edge and value.',
     },
     {
-      icon: '🧠',
+      icon: 'ðŸ§ ',
       title: 'SINGLE DEEP',
-      cost: isEs ? '2 créditos' : '2 credits',
+      cost: isEs ? '2 crÃ©ditos' : '2 credits',
       description: isEs
-        ? 'Análisis profundo con razonamiento detallado. Examina matchups de pitchers, tendencias ofensivas, bullpen, factores de estadio y más. ~30 segundos.'
+        ? 'AnÃ¡lisis profundo con razonamiento detallado. Examina matchups de pitchers, tendencias ofensivas, bullpen, factores de estadio y mÃ¡s. ~30 segundos.'
         : 'Deep analysis with detailed reasoning. Examines pitcher matchups, offensive trends, bullpen, park factors and more. ~30 seconds.',
     },
     {
-      icon: '✨',
+      icon: 'âœ¨',
       title: 'SINGLE PREMIUM',
-      cost: isEs ? '5 créditos' : '5 credits',
+      cost: isEs ? '5 crÃ©ditos' : '5 credits',
       description: isEs
-        ? 'Análisis con máxima profundidad de razonamiento. Modelo Opus con capacidad analítica superior para los picks de mayor valor.'
+        ? 'AnÃ¡lisis con mÃ¡xima profundidad de razonamiento. Modelo Opus con capacidad analÃ­tica superior para los picks de mayor valor.'
         : 'Analysis with maximum reasoning depth. Opus model with superior analytical capability for highest-value picks.',
     },
     {
-      icon: '🃏',
+      icon: 'ðŸƒ',
       title: 'PARLAY DEEP',
-      cost: isEs ? '8 créditos' : '8 credits',
+      cost: isEs ? '8 crÃ©ditos' : '8 credits',
       description: isEs
-        ? 'Análisis profundo de parlay. Razonamiento detallado para cada pierna del parlay con máxima precisión.'
+        ? 'AnÃ¡lisis profundo de parlay. Razonamiento detallado para cada pierna del parlay con mÃ¡xima precisiÃ³n.'
         : 'Deep parlay analysis. Detailed reasoning for each parlay leg with maximum precision.',
     },
     {
-      icon: '✨',
+      icon: 'âœ¨',
       title: 'PARLAY PREMIUM',
-      cost: isEs ? '15 créditos' : '15 credits',
+      cost: isEs ? '15 crÃ©ditos' : '15 credits',
       description: isEs
-        ? 'Parlay con razonamiento independiente por pick. Modelo Opus evalúa cada pierna de forma autónoma para máxima precisión combinada.'
+        ? 'Parlay con razonamiento independiente por pick. Modelo Opus evalÃºa cada pierna de forma autÃ³noma para mÃ¡xima precisiÃ³n combinada.'
         : 'Parlay with independent reasoning per pick. Opus model evaluates each leg autonomously for maximum combined precision.',
     },
     {
-      icon: '🌐',
+      icon: 'ðŸŒ',
       title: 'WEB INTEL',
-      cost: isEs ? '+3 créditos (Solo Single)' : '+3 credits (Single only)',
+      cost: isEs ? '+3 crÃ©ditos (Solo Single)' : '+3 credits (Single only)',
       description: isEs
-        ? 'Añade búsqueda en tiempo real: lesiones confirmadas, clima, noticias de último momento y alineaciones del día. Solo disponible en modo Single Game.'
+        ? 'AÃ±ade bÃºsqueda en tiempo real: lesiones confirmadas, clima, noticias de Ãºltimo momento y alineaciones del dÃ­a. Solo disponible en modo Single Game.'
         : 'Adds real-time search: confirmed injuries, weather, breaking news and daily lineups. Only available in Single Game mode.',
     },
   ];
@@ -167,12 +167,12 @@ function TabCredits({ lang }) {
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       {/* Title */}
       <Typography sx={{ fontFamily: BARLOW, fontSize: '1rem', fontWeight: 800, color: C.textPrimary, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-        {isEs ? '¿Cómo funcionan los créditos?' : 'How do credits work?'}
+        {isEs ? 'Â¿CÃ³mo funcionan los crÃ©ditos?' : 'How do credits work?'}
       </Typography>
 
       {/* Table header */}
       <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', px: '12px', pb: '6px', borderBottom: `1px solid ${C.border}` }}>
-        {[isEs ? 'Plan' : 'Plan', isEs ? 'Créditos' : 'Credits', isEs ? 'Precio' : 'Price'].map((h, i) => (
+        {[isEs ? 'Plan' : 'Plan', isEs ? 'CrÃ©ditos' : 'Credits', isEs ? 'Precio' : 'Price'].map((h, i) => (
           <Typography key={i} sx={{ fontFamily: BARLOW, fontSize: '0.65rem', fontWeight: 700, color: C.textMuted, textTransform: 'uppercase', letterSpacing: '0.1em', textAlign: i === 2 ? 'right' : i === 1 ? 'center' : 'left' }}>
             {h}
           </Typography>
@@ -188,7 +188,7 @@ function TabCredits({ lang }) {
       <Box sx={{ p: '12px 14px', bgcolor: C.accentDim, border: `1px solid ${C.accentLine}`, borderRadius: '2px' }}>
         <Typography sx={{ fontFamily: SANS, fontSize: '0.75rem', color: C.textMuted, lineHeight: 1.65 }}>
           {isEs
-            ? 'Los créditos nunca vencen. Úsalos cuando quieras, en los análisis que quieras.'
+            ? 'Los crÃ©ditos nunca vencen. Ãšsalos cuando quieras, en los anÃ¡lisis que quieras.'
             : 'Credits never expire. Use them whenever you want, on whatever analyses you want.'}
         </Typography>
       </Box>
@@ -196,13 +196,13 @@ function TabCredits({ lang }) {
       {/* Example */}
       <Box sx={{ p: '14px 16px', bgcolor: C.surface, border: `1px solid ${C.border}`, borderLeft: `3px solid ${C.accent}`, borderRadius: '2px' }}>
         <Typography sx={{ fontFamily: BARLOW, fontSize: '0.78rem', fontWeight: 800, color: C.accent, textTransform: 'uppercase', letterSpacing: '0.08em', mb: '8px' }}>
-          {isEs ? 'Ejemplo: Con 50 créditos (HEXA All-Star) puedes hacer:' : 'Example: With 50 credits (HEXA All-Star) you can run:'}
+          {isEs ? 'Ejemplo: Con 50 crÃ©ditos (HEXA All-Star) puedes hacer:' : 'Example: With 50 credits (HEXA All-Star) you can run:'}
         </Typography>
         {[
-          isEs ? '25 análisis Single Deep, ó' : '25 Single Deep analyses, or',
-          isEs ? '10 análisis Single Premium, ó' : '10 Single Premium analyses, or',
-          isEs ? '6 análisis Parlay Deep, ó' : '6 Parlay Deep analyses, or',
-          isEs ? '3 análisis Parlay Premium' : '3 Parlay Premium analyses',
+          isEs ? '25 anÃ¡lisis Single Deep, Ã³' : '25 Single Deep analyses, or',
+          isEs ? '10 anÃ¡lisis Single Premium, Ã³' : '10 Single Premium analyses, or',
+          isEs ? '6 anÃ¡lisis Parlay Deep, Ã³' : '6 Parlay Deep analyses, or',
+          isEs ? '3 anÃ¡lisis Parlay Premium' : '3 Parlay Premium analyses',
         ].map((line, i) => (
           <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: '6px', mb: '4px' }}>
             <Box sx={{ width: 4, height: 4, borderRadius: '50%', bgcolor: C.accent, flexShrink: 0 }} />
@@ -218,31 +218,31 @@ function TabOracle({ lang }) {
   const isEs = lang === 'es';
   const sources = [
     {
-      icon: '📊',
+      icon: 'ðŸ“Š',
       title: 'Baseball Savant (Statcast)',
       description: isEs
-        ? 'xwOBA, Exit Velocity, Whiff%, Barrel%, Sprint Speed y más de 16 leaderboards actualizados diariamente.'
+        ? 'xwOBA, Exit Velocity, Whiff%, Barrel%, Sprint Speed y mÃ¡s de 16 leaderboards actualizados diariamente.'
         : 'xwOBA, Exit Velocity, Whiff%, Barrel%, Sprint Speed and 16+ leaderboards updated daily.',
     },
     {
-      icon: '⚾',
-      title: 'MLB Stats API',
+      icon: 'âš¾',
+      title: 'EURO FOOTBALL Stats API',
       description: isEs
-        ? 'Estadísticas de pitchers, ofensiva de equipos, alineaciones confirmadas y datos históricos.'
+        ? 'EstadÃ­sticas de pitchers, ofensiva de equipos, alineaciones confirmadas y datos histÃ³ricos.'
         : 'Pitcher statistics, team offense, confirmed lineups and historical data.',
     },
     {
-      icon: '🎰',
+      icon: 'ðŸŽ°',
       title: 'The Odds API',
       description: isEs
         ? 'Momios reales del mercado en tiempo real de los principales sportsbooks.'
         : 'Real-time market odds from major sportsbooks.',
     },
     {
-      icon: '⚙️',
-      title: isEs ? 'Motor de Análisis H.E.X.A.' : 'H.E.X.A. Analysis Engine',
+      icon: 'âš™ï¸',
+      title: isEs ? 'Motor de AnÃ¡lisis H.E.X.A.' : 'H.E.X.A. Analysis Engine',
       description: isEs
-        ? 'Procesa toda esta información y genera picks con nivel de confianza, alertas de riesgo y razonamiento detallado basado en datos.'
+        ? 'Procesa toda esta informaciÃ³n y genera picks con nivel de confianza, alertas de riesgo y razonamiento detallado basado en datos.'
         : 'Processes all this information to generate picks with confidence levels, risk alerts and detailed data-driven reasoning.',
     },
   ];
@@ -253,7 +253,7 @@ function TabOracle({ lang }) {
       <Box sx={{ p: '14px 16px', bgcolor: C.surface, border: `1px solid ${C.border}`, borderRadius: '2px' }}>
         <Typography sx={{ fontFamily: SANS, fontSize: '0.82rem', color: C.textPrimary, lineHeight: 1.75 }}>
           {isEs
-            ? 'H.E.X.A. (Hybrid Expert X-Analysis) es un motor de análisis deportivo que combina múltiples fuentes de datos para generar picks con respaldo estadístico:'
+            ? 'H.E.X.A. (Hybrid Expert X-Analysis) es un motor de anÃ¡lisis deportivo que combina mÃºltiples fuentes de datos para generar picks con respaldo estadÃ­stico:'
             : 'H.E.X.A. (Hybrid Expert X-Analysis) is a sports analysis engine that combines multiple data sources to generate statistically-backed picks:'}
         </Typography>
       </Box>
@@ -267,7 +267,7 @@ function TabOracle({ lang }) {
       <Box sx={{ p: '12px 16px', bgcolor: 'rgba(0,212,255,0.06)', border: `1px solid rgba(0,212,255,0.2)`, borderRadius: '2px', textAlign: 'center' }}>
         <Typography sx={{ fontFamily: BARLOW, fontSize: '0.88rem', fontWeight: 800, color: C.accent, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
           {isEs
-            ? 'El resultado: picks respaldados por estadísticas, no por intuición.'
+            ? 'El resultado: picks respaldados por estadÃ­sticas, no por intuiciÃ³n.'
             : 'The result: statistically-backed picks, not gut feelings.'}
         </Typography>
       </Box>
@@ -275,7 +275,7 @@ function TabOracle({ lang }) {
   );
 }
 
-// ── Main export ───────────────────────────────────────────────────────────────
+// â”€â”€ Main export â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export default function HexaHelpModal({ open, onClose, lang = 'en' }) {
   const [activeTab, setActiveTab] = useState(0);
@@ -285,8 +285,8 @@ export default function HexaHelpModal({ open, onClose, lang = 'en' }) {
 
   const tabs = [
     { label: isEs ? 'Los Modos'    : 'The Modes'   },
-    { label: isEs ? 'Los Créditos' : 'Credits'     },
-    { label: isEs ? 'El Oráculo'   : 'The Oracle'  },
+    { label: isEs ? 'Los CrÃ©ditos' : 'Credits'     },
+    { label: isEs ? 'El OrÃ¡culo'   : 'The Oracle'  },
   ];
 
   return (
@@ -328,7 +328,7 @@ export default function HexaHelpModal({ open, onClose, lang = 'en' }) {
         <Box sx={{ display: 'flex', alignItems: 'center', px: '20px', pt: '18px', pb: '14px', borderBottom: `1px solid ${C.border}`, flexShrink: 0 }}>
           <Box sx={{ flex: 1 }}>
             <Typography sx={{ fontFamily: BARLOW, fontSize: '1.05rem', fontWeight: 800, color: C.textPrimary, textTransform: 'uppercase', letterSpacing: '0.15em' }}>
-              {isEs ? '¿Cómo funciona H.E.X.A.?' : 'How does H.E.X.A. work?'}
+              {isEs ? 'Â¿CÃ³mo funciona H.E.X.A.?' : 'How does H.E.X.A. work?'}
             </Typography>
             <Typography sx={{ fontFamily: BARLOW, fontSize: '0.62rem', fontWeight: 600, color: C.textMuted, textTransform: 'uppercase', letterSpacing: '0.25em', mt: '2px' }}>
               Hybrid Expert X-Analysis
@@ -355,7 +355,7 @@ export default function HexaHelpModal({ open, onClose, lang = 'en' }) {
               '&:hover':      { color: C.textPrimary, borderColor: C.accent },
             }}
           >
-            ✕
+            âœ•
           </Box>
         </Box>
 
@@ -398,3 +398,4 @@ export default function HexaHelpModal({ open, onClose, lang = 'en' }) {
     </Box>
   );
 }
+
