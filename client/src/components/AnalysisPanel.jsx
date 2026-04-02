@@ -563,7 +563,21 @@ function EmptyState({ mode, canAnalyze, t }) {
         minHeight: 240,
       }}
     >
-      <Typography sx={{ fontSize: '2rem', lineHeight: 1 }}>⚾</Typography>
+      <Box
+        sx={{
+          fontSize: '2rem',
+          lineHeight: 1,
+          color: C.accent,
+          filter: 'drop-shadow(0 0 10px rgba(255,102,0,0.45))',
+          '@keyframes soccerOrbit': {
+            '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
+            '50%': { transform: 'translateY(-5px) rotate(180deg)' },
+          },
+          animation: 'soccerOrbit 2.2s ease-in-out infinite',
+        }}
+      >
+        {'\u26BD'}
+      </Box>
       <Typography
         sx={{
           fontFamily: SANS,

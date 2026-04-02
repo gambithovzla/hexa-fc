@@ -19,7 +19,7 @@ import { resolvePendingPicks } from './pick-resolver.js';
 import { captureClosingLines } from './closing-line-capture.js';
 import { parseLivePick, calculatePickProgress } from './pick-tracker.js';
 import { captureOddsSnapshot, getLineMovement } from './line-movement.js';
-import { getTodayMatches, SUPPORTED_LEAGUES } from './soccer-api.js';
+import { getTodayMatches, getMatchById, SUPPORTED_LEAGUES, ODDS_API_MAP } from './soccer-api.js';
 
 // Temporary compatibility shims while other endpoints are migrated to football context.
 const buildContext = buildMatchContext;
@@ -227,8 +227,30 @@ app.post('/api/analyze/game', analysisLimiter, verifyToken, async (req, res) => 
   const cost         = calcServerCost('single', model, webSearch);
 
   try {
-    const match = { teams: { home: { name: 'Home' }, away: { name: 'Away' } } };
-    const prompt = await buildMatchContext(match);
+    const match = await getMatchById(id, date);
+    if (!match) {
+      return res.status(404).json({ success: false, error: `Partido ${id} no encontrado` });
+    }
+
+    let matchedOdds = null;
+    const leagueId = Number(match?.league?.id);
+    const sportKey = ODDS_API_MAP[leagueId];
+
+    if (sportKey) {
+      try {
+        const allOdds = await getGameOdds(sportKey);
+        const homeTeamName = String(match?.teams?.home?.name ?? '').toLowerCase();
+
+        matchedOdds = allOdds.find((event) => {
+          const eventHomeName = String(event?.homeTeam ?? '').toLowerCase();
+          return eventHomeName.includes(homeTeamName) || homeTeamName.includes(eventHomeName);
+        }) || null;
+      } catch (oddsError) {
+        console.warn('[analyze/game] odds fetch failed:', oddsError?.message ?? oddsError);
+      }
+    }
+
+    const prompt = await buildMatchContext(match, matchedOdds);
 
     const updatedUser = await deductCredits(req, res, cost);
     if (!updatedUser) return;
