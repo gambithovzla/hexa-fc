@@ -1,12 +1,12 @@
-/**
- * MethodologyPage.jsx — H.E.X.A. V4
+﻿/**
+ * MethodologyPage.jsx â€” H.E.X.A. V4
  *
  * Full-scroll landing page explaining how H.E.X.A. operates.
- * Rendered independently of the tab system — no React Router needed.
+ * Rendered independently of the tab system â€” no React Router needed.
  *
  * Props:
- *   lang   — 'en' | 'es'
- *   onBack — () => void  (returns user to main app)
+ *   lang   â€” 'en' | 'es'
+ *   onBack â€” () => void  (returns user to main app)
  */
 
 import { useState, useEffect, useRef } from 'react';
@@ -63,7 +63,7 @@ function AnimatedSection({ children, delay = 0 }) {
   );
 }
 
-// ── Sci-Fi design tokens (aligned with Phase A/B/C global system) ─────────────
+// â”€â”€ Sci-Fi design tokens (aligned with Phase A/B/C global system) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const BARLOW = GB;
 const DM     = GM;
@@ -92,53 +92,53 @@ const C = {
   greenDim:    GC.greenDim,
 };
 
-// ── Localised copy ────────────────────────────────────────────────────────────
+// â”€â”€ Localised copy â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const COPY = {
   en: {
-    back:         '← Back to H.E.X.A.',
+    back:         'â† Back to H.E.X.A.',
     heroEyebrow:  'The System Behind the Picks',
     heroTitle:    'How H.E.X.A. Works',
     heroSub:
-      'H.E.X.A. (Hybrid Expert X-Analysis) is a multi-layer analytical framework built exclusively for MLB. Every recommendation is the product of six interlocking signal engines operating in real time.',
+      'H.E.X.A. (Hybrid Expert X-Analysis) is a multi-layer analytical framework built exclusively for EURO FOOTBALL. Every recommendation is the product of six interlocking signal engines operating in real time.',
 
     pillarsTitle: 'Six Signal Engines',
     pillars: [
       {
-        icon: '◈',
+        icon: 'â—ˆ',
         label: 'Statcast Data Layer',
         body:
-          'We ingest live and historical Statcast feeds — exit velocity, launch angle, barrel rate, sprint speed and 40+ additional metrics — refreshed every cycle to capture the most current player performance state.',
+          'We ingest live and historical Statcast feeds â€” exit velocity, launch angle, barrel rate, sprint speed and 40+ additional metrics â€” refreshed every cycle to capture the most current player performance state.',
       },
       {
-        icon: '◉',
+        icon: 'â—‰',
         label: 'Probabilistic Modeling',
         body:
           'Each matchup is evaluated through Bayesian probability models calibrated against five seasons of granular play-by-play data. The output is a win-probability distribution, not a single point estimate.',
       },
       {
-        icon: '◆',
+        icon: 'â—†',
         label: 'Pitcher / Batter Matrix',
         body:
           'Plate-discipline metrics (chase rate, contact %, whiff %) are cross-referenced against opposing pitcher tendencies by pitch type and location zone, generating an edge score for each at-bat profile.',
       },
       {
-        icon: '◇',
+        icon: 'â—‡',
         label: 'Situational Context Engine',
         body:
           'Park factors, weather conditions, rest differential, home/away splits and bullpen workload are layered onto the base model. Context adjusts the raw edge score before any recommendation is issued.',
       },
       {
-        icon: '▣',
+        icon: 'â–£',
         label: 'Line Movement Monitor',
         body:
           'Opening lines and sharp-money signals are tracked continuously. When market movement contradicts model output by a statistically meaningful margin, the system flags the discrepancy and re-weights its confidence.',
       },
       {
-        icon: '▲',
+        icon: 'â–²',
         label: 'Confidence Calibration',
         body:
-          'All six signals are aggregated into a single Confidence Index (0–100). Only matchups crossing a proprietary threshold are surfaced to users — the system deliberately abstains rather than force low-quality picks.',
+          'All six signals are aggregated into a single Confidence Index (0â€“100). Only matchups crossing a proprietary threshold are surfaced to users â€” the system deliberately abstains rather than force low-quality picks.',
       },
     ],
 
@@ -147,14 +147,14 @@ const COPY = {
       { num: '01', label: 'Ingest',     body: 'Raw Statcast records, line data and contextual variables are pulled and validated.' },
       { num: '02', label: 'Score',      body: 'Each signal engine scores the matchup independently along its own dimension.' },
       { num: '03', label: 'Aggregate',  body: 'Scores are weighted and combined into a unified Confidence Index for the game.' },
-      { num: '04', label: 'Filter',     body: 'Matchups below threshold are suppressed. Quality over quantity — always.' },
+      { num: '04', label: 'Filter',     body: 'Matchups below threshold are suppressed. Quality over quantity â€” always.' },
       { num: '05', label: 'Deliver',    body: 'Qualifying picks are surfaced with full signal breakdowns for transparent review.' },
     ],
 
     edgeTitle: 'The H.E.X.A. Edge',
     edges: [
       { label: 'Data recency',    body: 'Statcast refreshes prevent stale signals from skewing output.' },
-      { label: 'No gut picks',    body: 'Every recommendation is traceable to specific model inputs — no black boxes.' },
+      { label: 'No gut picks',    body: 'Every recommendation is traceable to specific model inputs â€” no black boxes.' },
       { label: 'Parlay integrity',body: 'Parlay legs are checked for correlation risk before bundling.' },
       { label: 'Bankroll aware',  body: 'The built-in tracker surfaces ROI and unit trends to keep you disciplined.' },
     ],
@@ -162,92 +162,92 @@ const COPY = {
     disclaimer:
       'H.E.X.A. provides analytical insights to support your own decision-making. No system eliminates variance in sports betting. Always bet within your means.',
 
-    footerLine: 'H.E.X.A. Hybrid Expert X-Analysis · Powered by Gambitho Labs',
+    footerLine: 'H.E.X.A. Hybrid Expert X-Analysis Â· Powered by Gambitho Labs',
   },
 
   es: {
-    back:         '← Volver a H.E.X.A.',
-    heroEyebrow:  'El Sistema Detrás de los Picks',
-    heroTitle:    'Cómo Funciona H.E.X.A.',
+    back:         'â† Volver a H.E.X.A.',
+    heroEyebrow:  'El Sistema DetrÃ¡s de los Picks',
+    heroTitle:    'CÃ³mo Funciona H.E.X.A.',
     heroSub:
-      'H.E.X.A. (Hybrid Expert X-Analysis) es un marco analítico multicapa construido exclusivamente para la MLB. Cada recomendación es el producto de seis motores de señal interconectados que operan en tiempo real.',
+      'H.E.X.A. (Hybrid Expert X-Analysis) es un marco analÃ­tico multicapa construido exclusivamente para la EURO FOOTBALL. Cada recomendaciÃ³n es el producto de seis motores de seÃ±al interconectados que operan en tiempo real.',
 
-    pillarsTitle: 'Seis Motores de Señal',
+    pillarsTitle: 'Seis Motores de SeÃ±al',
     pillars: [
       {
-        icon: '◈',
+        icon: 'â—ˆ',
         label: 'Capa de Datos Statcast',
         body:
-          'Ingerimos feeds Statcast en vivo e históricos — velocidad de salida, ángulo de lanzamiento, tasa de barrel, velocidad de carrera y más de 40 métricas adicionales — actualizados cada ciclo para capturar el estado más actual del rendimiento del jugador.',
+          'Ingerimos feeds Statcast en vivo e histÃ³ricos â€” velocidad de salida, Ã¡ngulo de lanzamiento, tasa de barrel, velocidad de carrera y mÃ¡s de 40 mÃ©tricas adicionales â€” actualizados cada ciclo para capturar el estado mÃ¡s actual del rendimiento del jugador.',
       },
       {
-        icon: '◉',
-        label: 'Modelado Probabilístico',
+        icon: 'â—‰',
+        label: 'Modelado ProbabilÃ­stico',
         body:
-          'Cada encuentro se evalúa mediante modelos de probabilidad bayesianos calibrados con cinco temporadas de datos granulares jugada por jugada. La salida es una distribución de probabilidad de victoria, no una estimación puntual única.',
+          'Cada encuentro se evalÃºa mediante modelos de probabilidad bayesianos calibrados con cinco temporadas de datos granulares jugada por jugada. La salida es una distribuciÃ³n de probabilidad de victoria, no una estimaciÃ³n puntual Ãºnica.',
       },
       {
-        icon: '◆',
+        icon: 'â—†',
         label: 'Matriz Pitcher / Bateador',
         body:
-          'Las métricas de disciplina de plato (tasa de persecución, contacto %, whiff %) se cruzan con las tendencias del lanzador oponente por tipo de pitcheo y zona de ubicación, generando una puntuación de ventaja para cada perfil de turno al bate.',
+          'Las mÃ©tricas de disciplina de plato (tasa de persecuciÃ³n, contacto %, whiff %) se cruzan con las tendencias del lanzador oponente por tipo de pitcheo y zona de ubicaciÃ³n, generando una puntuaciÃ³n de ventaja para cada perfil de turno al bate.',
       },
       {
-        icon: '◇',
+        icon: 'â—‡',
         label: 'Motor de Contexto Situacional',
         body:
-          'Los factores de parque, condiciones climáticas, diferencial de descanso, divisiones local/visitante y carga de trabajo del bullpen se superponen al modelo base. El contexto ajusta la puntuación bruta de ventaja antes de emitir cualquier recomendación.',
+          'Los factores de parque, condiciones climÃ¡ticas, diferencial de descanso, divisiones local/visitante y carga de trabajo del bullpen se superponen al modelo base. El contexto ajusta la puntuaciÃ³n bruta de ventaja antes de emitir cualquier recomendaciÃ³n.',
       },
       {
-        icon: '▣',
-        label: 'Monitor de Movimiento de Línea',
+        icon: 'â–£',
+        label: 'Monitor de Movimiento de LÃ­nea',
         body:
-          'Las líneas de apertura y las señales de dinero afilado se rastrean continuamente. Cuando el movimiento del mercado contradice la salida del modelo por un margen estadísticamente significativo, el sistema marca la discrepancia y repondera su confianza.',
+          'Las lÃ­neas de apertura y las seÃ±ales de dinero afilado se rastrean continuamente. Cuando el movimiento del mercado contradice la salida del modelo por un margen estadÃ­sticamente significativo, el sistema marca la discrepancia y repondera su confianza.',
       },
       {
-        icon: '▲',
-        label: 'Calibración de Confianza',
+        icon: 'â–²',
+        label: 'CalibraciÃ³n de Confianza',
         body:
-          'Las seis señales se agregan en un único Índice de Confianza (0–100). Solo los encuentros que superan un umbral propietario se presentan a los usuarios — el sistema se abstiene deliberadamente en lugar de forzar picks de baja calidad.',
+          'Las seis seÃ±ales se agregan en un Ãºnico Ãndice de Confianza (0â€“100). Solo los encuentros que superan un umbral propietario se presentan a los usuarios â€” el sistema se abstiene deliberadamente en lugar de forzar picks de baja calidad.',
       },
     ],
 
     processTitle: 'Del Dato al Pick',
     steps: [
-      { num: '01', label: 'Ingesta',    body: 'Se obtienen y validan registros Statcast brutos, datos de línea y variables contextuales.' },
-      { num: '02', label: 'Puntuación', body: 'Cada motor de señal puntúa el encuentro de forma independiente en su propia dimensión.' },
-      { num: '03', label: 'Agregación', body: 'Las puntuaciones se ponderan y combinan en un Índice de Confianza unificado para el juego.' },
-      { num: '04', label: 'Filtrado',   body: 'Los encuentros por debajo del umbral se suprimen. Calidad sobre cantidad — siempre.' },
-      { num: '05', label: 'Entrega',    body: 'Los picks que califican se presentan con desgloses completos de señales para revisión transparente.' },
+      { num: '01', label: 'Ingesta',    body: 'Se obtienen y validan registros Statcast brutos, datos de lÃ­nea y variables contextuales.' },
+      { num: '02', label: 'PuntuaciÃ³n', body: 'Cada motor de seÃ±al puntÃºa el encuentro de forma independiente en su propia dimensiÃ³n.' },
+      { num: '03', label: 'AgregaciÃ³n', body: 'Las puntuaciones se ponderan y combinan en un Ãndice de Confianza unificado para el juego.' },
+      { num: '04', label: 'Filtrado',   body: 'Los encuentros por debajo del umbral se suprimen. Calidad sobre cantidad â€” siempre.' },
+      { num: '05', label: 'Entrega',    body: 'Los picks que califican se presentan con desgloses completos de seÃ±ales para revisiÃ³n transparente.' },
     ],
 
     edgeTitle: 'La Ventaja H.E.X.A.',
     edges: [
-      { label: 'Actualidad de datos',  body: 'Las actualizaciones de Statcast evitan que señales obsoletas distorsionen la salida.' },
-      { label: 'Sin picks intuitivos', body: 'Cada recomendación es rastreable a entradas de modelo específicas — sin cajas negras.' },
-      { label: 'Integridad del parlay',body: 'Las patas del parlay se verifican por riesgo de correlación antes de agruparse.' },
+      { label: 'Actualidad de datos',  body: 'Las actualizaciones de Statcast evitan que seÃ±ales obsoletas distorsionen la salida.' },
+      { label: 'Sin picks intuitivos', body: 'Cada recomendaciÃ³n es rastreable a entradas de modelo especÃ­ficas â€” sin cajas negras.' },
+      { label: 'Integridad del parlay',body: 'Las patas del parlay se verifican por riesgo de correlaciÃ³n antes de agruparse.' },
       { label: 'Bankroll consciente',  body: 'El rastreador integrado muestra ROI y tendencias de unidades para mantener la disciplina.' },
     ],
 
     disclaimer:
-      'H.E.X.A. proporciona información analítica para apoyar tu propia toma de decisiones. Ningún sistema elimina la varianza en las apuestas deportivas. Siempre apuesta dentro de tus posibilidades.',
+      'H.E.X.A. proporciona informaciÃ³n analÃ­tica para apoyar tu propia toma de decisiones. NingÃºn sistema elimina la varianza en las apuestas deportivas. Siempre apuesta dentro de tus posibilidades.',
 
-    footerLine: 'H.E.X.A. Hybrid Expert X-Analysis · Desarrollado por Gambitho Labs',
+    footerLine: 'H.E.X.A. Hybrid Expert X-Analysis Â· Desarrollado por Gambitho Labs',
   },
 };
 
-// ── Signal hierarchy data ─────────────────────────────────────────────────────
+// â”€â”€ Signal hierarchy data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const SIGNAL_HIERARCHY = [
-  { level: '01', name: 'CONTACTO REAL',      desc: 'Datos Statcast de la temporada actual: calidad de contacto medida, no estimada. Es la señal más predictiva que existe en baseball.',                                                                                       descEn: 'Current season Statcast data: measured contact quality, not estimated. The most predictive signal in baseball.',                                              weight: 95 },
-  { level: '02', name: 'FORMA INMEDIATA',    desc: 'Rendimiento en ventanas de 7 y 14 días. Cuando un bateador está en racha o un pitcher en crisis, esto domina sobre los promedios.',                                                                                        descEn: 'Performance in 7 and 14-day windows. When a batter is hot or a pitcher is struggling, this dominates over averages.',                                        weight: 80 },
-  { level: '03', name: 'TEMPORADA COMPLETA', desc: 'Promedios estabilizados de la temporada. Sirven como ancla cuando los datos de corto plazo son ruidosos o la muestra es pequeña.',                                                                                         descEn: 'Stabilized season averages. They serve as an anchor when short-term data is noisy or sample size is small.',                                                  weight: 65 },
-  { level: '04', name: 'TENDENCIA HISTÓRICA',desc: 'Comparación multi-año. Detecta regresiones, breakouts y cambios de perfil. Contexto — nunca anula los datos actuales.',                                                                                                   descEn: 'Multi-year comparison. Detects regressions, breakouts and profile changes. Context — never overrides current data.',                                          weight: 45 },
-  { level: '05', name: 'MERCADO DE ODDS',    desc: 'Las líneas de las casas de apuesta representan la opinión agregada del mercado. H.E.X.A. las usa para encontrar gaps de valor, no para validar picks.',                                                                    descEn: 'Sportsbook lines represent the aggregated market opinion. H.E.X.A. uses them to find value gaps, not to validate picks.',                                     weight: 30 },
-  { level: '06', name: 'ENTORNO FÍSICO',     desc: 'Clima y park factors son modificadores obligatorios. Un análisis sin considerar viento a favor en Wrigley está incompleto.',                                                                                               descEn: 'Weather and park factors are mandatory modifiers. An analysis without considering tailwind at Wrigley is incomplete.',                                        weight: 20 },
+  { level: '01', name: 'CONTACTO REAL',      desc: 'Datos Statcast de la temporada actual: calidad de contacto medida, no estimada. Es la seÃ±al mÃ¡s predictiva que existe en baseball.',                                                                                       descEn: 'Current season Statcast data: measured contact quality, not estimated. The most predictive signal in baseball.',                                              weight: 95 },
+  { level: '02', name: 'FORMA INMEDIATA',    desc: 'Rendimiento en ventanas de 7 y 14 dÃ­as. Cuando un bateador estÃ¡ en racha o un pitcher en crisis, esto domina sobre los promedios.',                                                                                        descEn: 'Performance in 7 and 14-day windows. When a batter is hot or a pitcher is struggling, this dominates over averages.',                                        weight: 80 },
+  { level: '03', name: 'TEMPORADA COMPLETA', desc: 'Promedios estabilizados de la temporada. Sirven como ancla cuando los datos de corto plazo son ruidosos o la muestra es pequeÃ±a.',                                                                                         descEn: 'Stabilized season averages. They serve as an anchor when short-term data is noisy or sample size is small.',                                                  weight: 65 },
+  { level: '04', name: 'TENDENCIA HISTÃ“RICA',desc: 'ComparaciÃ³n multi-aÃ±o. Detecta regresiones, breakouts y cambios de perfil. Contexto â€” nunca anula los datos actuales.',                                                                                                   descEn: 'Multi-year comparison. Detects regressions, breakouts and profile changes. Context â€” never overrides current data.',                                          weight: 45 },
+  { level: '05', name: 'MERCADO DE ODDS',    desc: 'Las lÃ­neas de las casas de apuesta representan la opiniÃ³n agregada del mercado. H.E.X.A. las usa para encontrar gaps de valor, no para validar picks.',                                                                    descEn: 'Sportsbook lines represent the aggregated market opinion. H.E.X.A. uses them to find value gaps, not to validate picks.',                                     weight: 30 },
+  { level: '06', name: 'ENTORNO FÃSICO',     desc: 'Clima y park factors son modificadores obligatorios. Un anÃ¡lisis sin considerar viento a favor en Wrigley estÃ¡ incompleto.',                                                                                               descEn: 'Weather and park factors are mandatory modifiers. An analysis without considering tailwind at Wrigley is incomplete.',                                        weight: 20 },
 ];
 
-// ── Sub-components ────────────────────────────────────────────────────────────
+// â”€â”€ Sub-components â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function PillarCard({ icon, label, body }) {
   return (
@@ -333,7 +333,7 @@ function ProcessStep({ num, label, body, isLast }) {
         />
       )}
 
-      {/* Step number — square neon */}
+      {/* Step number â€” square neon */}
       <Box
         sx={{
           width:          '36px',
@@ -403,7 +403,7 @@ function EdgeItem({ label, body }) {
     >
       {/* Neon green bracket indicator */}
       <Box sx={{ flexShrink: 0, mt: '3px' }}>
-        <Typography sx={{ fontFamily: MONO, fontSize: '0.7rem', color: C.green, lineHeight: 1, textShadow: `0 0 8px ${C.green}88` }}>▶</Typography>
+        <Typography sx={{ fontFamily: MONO, fontSize: '0.7rem', color: C.green, lineHeight: 1, textShadow: `0 0 8px ${C.green}88` }}>â–¶</Typography>
       </Box>
       <Box>
         <Typography
@@ -433,7 +433,7 @@ function EdgeItem({ label, body }) {
   );
 }
 
-// ── Section wrapper ───────────────────────────────────────────────────────────
+// â”€â”€ Section wrapper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function Section({ children, sx = {} }) {
   return (
@@ -510,7 +510,7 @@ function HeroCounter({ lang }) {
   );
 }
 
-// ── Main export ───────────────────────────────────────────────────────────────
+// â”€â”€ Main export â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export default function MethodologyPage({ lang = 'en', onBack, onToggleLang }) {
   const t = COPY[lang] ?? COPY.en;
@@ -542,7 +542,7 @@ export default function MethodologyPage({ lang = 'en', onBack, onToggleLang }) {
         }} />
       ))}
       <style>{METHODOLOGY_CSS}</style>
-      {/* ── Minimal top bar ── */}
+      {/* â”€â”€ Minimal top bar â”€â”€ */}
       <Box
         component="header"
         sx={{
@@ -628,7 +628,7 @@ export default function MethodologyPage({ lang = 'en', onBack, onToggleLang }) {
         )}
       </Box>
 
-      {/* ── Hero ── */}
+      {/* â”€â”€ Hero â”€â”€ */}
       <Box
         sx={{
           background:  C.bg,
@@ -649,7 +649,7 @@ export default function MethodologyPage({ lang = 'en', onBack, onToggleLang }) {
             mb:            '10px',
           }}
         >
-          // H.E.X.A._SYSTEM_DOCS · ANALYTICAL_FRAMEWORK_v4
+          // H.E.X.A._SYSTEM_DOCS Â· ANALYTICAL_FRAMEWORK_v4
         </Typography>
 
         <Typography
@@ -699,7 +699,7 @@ export default function MethodologyPage({ lang = 'en', onBack, onToggleLang }) {
         </Box>
       </Box>
 
-      {/* ── Six Signal Engines ── */}
+      {/* â”€â”€ Six Signal Engines â”€â”€ */}
       <Section>
         <SectionLabel>{t.pillarsTitle}</SectionLabel>
         <SectionTitle>{t.pillarsTitle}</SectionTitle>
@@ -718,19 +718,19 @@ export default function MethodologyPage({ lang = 'en', onBack, onToggleLang }) {
         </Box>
       </Section>
 
-      {/* ── Divider ── */}
+      {/* â”€â”€ Divider â”€â”€ */}
       <Box sx={{ borderTop: `1px solid ${C.border}` }} />
 
-      {/* ── Signal Hierarchy ── */}
+      {/* â”€â”€ Signal Hierarchy â”€â”€ */}
       <section style={{ maxWidth: 1100, margin: '0 auto', padding: '6rem 2rem' }}>
         <div style={{ marginBottom: '0.75rem', fontFamily: GM, fontSize: '0.6rem', letterSpacing: 4, textTransform: 'uppercase', color: GC.textMuted }}>
-          <span style={{ color: GC.textDim }}>[ </span>{lang === 'es' ? '02 — JERARQUÍA DE SEÑALES' : '02 — SIGNAL HIERARCHY'}<span style={{ color: GC.textDim }}> ]</span>
+          <span style={{ color: GC.textDim }}>[ </span>{lang === 'es' ? '02 â€” JERARQUÃA DE SEÃ‘ALES' : '02 â€” SIGNAL HIERARCHY'}<span style={{ color: GC.textDim }}> ]</span>
         </div>
         <h2 style={{ fontFamily: GB, fontSize: 'clamp(1.5rem, 4vw, 2.4rem)', color: GC.textPrimary, letterSpacing: 4, textTransform: 'uppercase', lineHeight: 1.1, marginBottom: '1rem', textShadow: '0 0 20px rgba(0,217,255,0.15)' }}>
-          {lang === 'es' ? <>Cuando los datos se contradicen,<br/>H.E.X.A. sabe cuál manda.</> : <>When data conflicts,<br/>H.E.X.A. knows which signal wins.</>}
+          {lang === 'es' ? <>Cuando los datos se contradicen,<br/>H.E.X.A. sabe cuÃ¡l manda.</> : <>When data conflicts,<br/>H.E.X.A. knows which signal wins.</>}
         </h2>
         <p style={{ fontFamily: GM, fontSize: '0.8rem', lineHeight: 1.8, color: GC.textMuted, maxWidth: 600, marginBottom: '3rem' }}>
-          {lang === 'es' ? 'No todas las señales pesan igual. Este es el orden de prioridad que resuelve conflictos entre datos.' : 'Not all signals carry equal weight. This is the priority order that resolves data conflicts.'}
+          {lang === 'es' ? 'No todas las seÃ±ales pesan igual. Este es el orden de prioridad que resuelve conflictos entre datos.' : 'Not all signals carry equal weight. This is the priority order that resolves data conflicts.'}
         </p>
         <div style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
           <div style={{ flex: '0 0 280px', display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -775,20 +775,20 @@ export default function MethodologyPage({ lang = 'en', onBack, onToggleLang }) {
         </div>
       </section>
 
-      {/* ── Divider ── */}
+      {/* â”€â”€ Divider â”€â”€ */}
       <Box sx={{ borderTop: `1px solid ${C.border}` }} />
 
-      {/* ── Data Integrity ── */}
+      {/* â”€â”€ Data Integrity â”€â”€ */}
       <section style={{ maxWidth: 1100, margin: '0 auto', padding: '6rem 2rem' }}>
         <div style={{ marginBottom: '0.75rem', fontFamily: GM, fontSize: '0.6rem', letterSpacing: 4, textTransform: 'uppercase', color: GC.textMuted }}>
-          <span style={{ color: GC.textDim }}>[ </span>{lang === 'es' ? '03 — INTEGRIDAD DE DATOS' : '03 — DATA INTEGRITY'}<span style={{ color: GC.textDim }}> ]</span>
+          <span style={{ color: GC.textDim }}>[ </span>{lang === 'es' ? '03 â€” INTEGRIDAD DE DATOS' : '03 â€” DATA INTEGRITY'}<span style={{ color: GC.textDim }}> ]</span>
         </div>
         <h2 style={{ fontFamily: GB, fontSize: 'clamp(1.5rem, 4vw, 2.4rem)', color: GC.textPrimary, letterSpacing: 4, textTransform: 'uppercase', lineHeight: 1.1, marginBottom: '1rem', textShadow: '0 0 20px rgba(0,217,255,0.15)' }}>
           {lang === 'es' ? <>Si los datos son incompletos,<br/>la confianza baja. Siempre.</> : <>If data is incomplete,<br/>confidence drops. Always.</>}
         </h2>
         <p style={{ fontFamily: GM, fontSize: '0.8rem', lineHeight: 1.8, color: GC.textMuted, maxWidth: 600, marginBottom: '3rem' }}>
           {lang === 'es'
-            ? 'Antes de cada análisis, H.E.X.A. calcula un score de calidad de datos (0-100) que determina qué tipos de apuesta están disponibles y cuánto se penaliza la confianza. Sin teatro.'
+            ? 'Antes de cada anÃ¡lisis, H.E.X.A. calcula un score de calidad de datos (0-100) que determina quÃ© tipos de apuesta estÃ¡n disponibles y cuÃ¡nto se penaliza la confianza. Sin teatro.'
             : 'Before every analysis, H.E.X.A. calculates a data quality score (0-100) that determines which bet types are available and how much confidence is penalized. No theater.'}
         </p>
         <div style={{ background: GC.surface, border: `1px solid ${GC.cyanLine}`, borderRadius: 0, padding: '2rem', position: 'relative' }}>
@@ -798,11 +798,11 @@ export default function MethodologyPage({ lang = 'en', onBack, onToggleLang }) {
             <div style={{ background: GC.bg, padding: '1.5rem', textAlign: 'center', borderRight: `1px solid ${GC.cyanLine}` }}>
               <div style={{ fontFamily: GM, fontSize: '1.6rem', color: GC.green, marginBottom: '0.5rem', textShadow: `0 0 12px ${GC.green}66` }}>80-100</div>
               <div style={{ fontFamily: GM, fontSize: '0.6rem', letterSpacing: 3, textTransform: 'uppercase', color: GC.textMuted, marginBottom: '0.75rem' }}>
-                {lang === 'es' ? 'ANÁLISIS_COMPLETO' : 'FULL_ANALYSIS'}
+                {lang === 'es' ? 'ANÃLISIS_COMPLETO' : 'FULL_ANALYSIS'}
               </div>
               <p style={{ fontFamily: GM, fontSize: '0.72rem', lineHeight: 1.6, color: GC.textMuted }}>
                 {lang === 'es'
-                  ? 'Todos los datos disponibles. Todos los tipos de apuesta habilitados. Máxima confianza.'
+                  ? 'Todos los datos disponibles. Todos los tipos de apuesta habilitados. MÃ¡xima confianza.'
                   : 'All data available. All bet types enabled. Maximum confidence.'}
               </p>
             </div>
@@ -810,7 +810,7 @@ export default function MethodologyPage({ lang = 'en', onBack, onToggleLang }) {
             <div style={{ background: GC.bg, padding: '1.5rem', textAlign: 'center', borderRight: `1px solid ${GC.cyanLine}` }}>
               <div style={{ fontFamily: GM, fontSize: '1.6rem', color: GC.cyan, marginBottom: '0.5rem', textShadow: `0 0 12px ${GC.cyan}66` }}>60-79</div>
               <div style={{ fontFamily: GM, fontSize: '0.6rem', letterSpacing: 3, textTransform: 'uppercase', color: GC.textMuted, marginBottom: '0.75rem' }}>
-                {lang === 'es' ? 'ANÁLISIS_ESTÁNDAR' : 'STANDARD_ANALYSIS'}
+                {lang === 'es' ? 'ANÃLISIS_ESTÃNDAR' : 'STANDARD_ANALYSIS'}
               </div>
               <p style={{ fontFamily: GM, fontSize: '0.72rem', lineHeight: 1.6, color: GC.textMuted }}>
                 {lang === 'es'
@@ -822,7 +822,7 @@ export default function MethodologyPage({ lang = 'en', onBack, onToggleLang }) {
             <div style={{ background: GC.bg, padding: '1.5rem', textAlign: 'center', borderRight: `1px solid ${GC.cyanLine}` }}>
               <div style={{ fontFamily: GM, fontSize: '1.6rem', color: GC.accent, marginBottom: '0.5rem', textShadow: `0 0 12px ${GC.accent}66` }}>40-59</div>
               <div style={{ fontFamily: GM, fontSize: '0.6rem', letterSpacing: 3, textTransform: 'uppercase', color: GC.textMuted, marginBottom: '0.75rem' }}>
-                {lang === 'es' ? 'ANÁLISIS_LIMITADO' : 'LIMITED_ANALYSIS'}
+                {lang === 'es' ? 'ANÃLISIS_LIMITADO' : 'LIMITED_ANALYSIS'}
               </div>
               <p style={{ fontFamily: GM, fontSize: '0.72rem', lineHeight: 1.6, color: GC.textMuted }}>
                 {lang === 'es'
@@ -834,11 +834,11 @@ export default function MethodologyPage({ lang = 'en', onBack, onToggleLang }) {
             <div style={{ background: GC.bg, padding: '1.5rem', textAlign: 'center' }}>
               <div style={{ fontFamily: GM, fontSize: '1.6rem', color: GC.red, marginBottom: '0.5rem', textShadow: `0 0 12px ${GC.red}66` }}>0-39</div>
               <div style={{ fontFamily: GM, fontSize: '0.6rem', letterSpacing: 3, textTransform: 'uppercase', color: GC.textMuted, marginBottom: '0.75rem' }}>
-                {lang === 'es' ? 'ANÁLISIS_MÍNIMO' : 'MINIMAL_ANALYSIS'}
+                {lang === 'es' ? 'ANÃLISIS_MÃNIMO' : 'MINIMAL_ANALYSIS'}
               </div>
               <p style={{ fontFamily: GM, fontSize: '0.72rem', lineHeight: 1.6, color: GC.textMuted }}>
                 {lang === 'es'
-                  ? 'Solo Moneyline. Confianza -25%. Riesgo alto obligatorio. Máxima transparencia.'
+                  ? 'Solo Moneyline. Confianza -25%. Riesgo alto obligatorio. MÃ¡xima transparencia.'
                   : 'Moneyline only. Confidence -25%. High risk mandatory. Maximum transparency.'}
               </p>
             </div>
@@ -846,10 +846,10 @@ export default function MethodologyPage({ lang = 'en', onBack, onToggleLang }) {
         </div>
       </section>
 
-      {/* ── Divider ── */}
+      {/* â”€â”€ Divider â”€â”€ */}
       <Box sx={{ borderTop: `1px solid ${C.border}` }} />
 
-      {/* ── Process ── */}
+      {/* â”€â”€ Process â”€â”€ */}
       <Section>
         <SectionLabel>{t.processTitle}</SectionLabel>
         <SectionTitle>{t.processTitle}</SectionTitle>
@@ -867,10 +867,10 @@ export default function MethodologyPage({ lang = 'en', onBack, onToggleLang }) {
         </Box>
       </Section>
 
-      {/* ── Divider ── */}
+      {/* â”€â”€ Divider â”€â”€ */}
       <Box sx={{ borderTop: `1px solid ${C.border}` }} />
 
-      {/* ── The Edge ── */}
+      {/* â”€â”€ The Edge â”€â”€ */}
       <Section>
         <SectionLabel>{t.edgeTitle}</SectionLabel>
         <SectionTitle>{t.edgeTitle}</SectionTitle>
@@ -903,10 +903,10 @@ export default function MethodologyPage({ lang = 'en', onBack, onToggleLang }) {
         </Box>
       </Section>
 
-      {/* ── Divider ── */}
+      {/* â”€â”€ Divider â”€â”€ */}
       <Box sx={{ borderTop: `1px solid ${C.border}` }} />
 
-      {/* ── Disclaimer / footer ── */}
+      {/* â”€â”€ Disclaimer / footer â”€â”€ */}
       <Box
         component="footer"
         sx={{
@@ -952,3 +952,4 @@ export default function MethodologyPage({ lang = 'en', onBack, onToggleLang }) {
     </Box>
   );
 }
+

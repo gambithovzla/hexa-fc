@@ -1,8 +1,8 @@
-/**
- * LiveTracker.jsx — H.E.X.A. V4
+﻿/**
+ * LiveTracker.jsx â€” H.E.X.A. V4
  *
  * Real-time scoreboard, diamond situation, play-by-play feed,
- * and pick progress bars for all in-progress MLB games.
+ * and pick progress bars for all in-progress EURO FOOTBALL games.
  * Polls /api/matches/live every 30 seconds.
  */
 
@@ -42,8 +42,8 @@ const T = {
   es: {
     title:        'EN VIVO',
     noGames:      'No hay juegos en progreso',
-    noGamesDesc:  'Los marcadores aparecerán aquí cuando comiencen los juegos.',
-    lastUpdate:   'Última actualización',
+    noGamesDesc:  'Los marcadores aparecerÃ¡n aquÃ­ cuando comiencen los juegos.',
+    lastUpdate:   'Ãšltima actualizaciÃ³n',
     polling:      'ACTUALIZANDO',
     inning:       'INN',
     top:          'T',
@@ -60,12 +60,12 @@ const T = {
     hits:         'H',
     errors:       'E',
     winning:      'EN CAMINO',
-    losing:       'ATRÁS',
+    losing:       'ATRÃS',
     resolved:     'RESUELTO',
   },
 };
 
-// ── Pick bar color helper ─────────────────────────────────────────────────────
+// â”€â”€ Pick bar color helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function getPickBarColor(pick) {
   if (!pick || pick.status === 'pending' || pick.status === 'not_started') return C.textMuted;
@@ -83,7 +83,7 @@ function getPickBarColor(pick) {
   return C.accent;
 }
 
-// ── Diamond SVG ───────────────────────────────────────────────────────────────
+// â”€â”€ Diamond SVG â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function DiamondSVG({ runners, size = 70 }) {
   const s  = size;
@@ -126,7 +126,7 @@ function DiamondSVG({ runners, size = 70 }) {
   );
 }
 
-// ── Outs display ──────────────────────────────────────────────────────────────
+// â”€â”€ Outs display â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function OutsDisplay({ outs, label }) {
   return (
@@ -147,7 +147,7 @@ function OutsDisplay({ outs, label }) {
   );
 }
 
-// ── Scoreboard ────────────────────────────────────────────────────────────────
+// â”€â”€ Scoreboard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function Scoreboard({ game, lang }) {
   const { innings: gameInnings, away, home, situation } = game;
@@ -257,7 +257,7 @@ function Scoreboard({ game, lang }) {
   );
 }
 
-// ── Recent plays feed ─────────────────────────────────────────────────────────
+// â”€â”€ Recent plays feed â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function RecentPlaysFeed({ plays, lang }) {
   const t = T[lang] || T.en;
@@ -279,7 +279,7 @@ function RecentPlaysFeed({ plays, lang }) {
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
         {last5.map((play, i) => {
           const isScoring = play.isScoring;
-          const half      = (play.halfInning === 'top' || play.halfInning === 'Top') ? '▲' : '▼';
+          const half      = (play.halfInning === 'top' || play.halfInning === 'Top') ? 'â–²' : 'â–¼';
           const inn       = play.inning || '?';
           const eventColor = eventColors[play.event] || C.textSecondary;
 
@@ -315,7 +315,7 @@ function RecentPlaysFeed({ plays, lang }) {
               </Typography>
               {isScoring && (
                 <Typography sx={{ fontFamily: MONO, fontSize: '0.5rem', color: C.green, flexShrink: 0, alignSelf: 'center' }}>
-                  ⚡
+                  âš¡
                 </Typography>
               )}
             </Box>
@@ -326,7 +326,7 @@ function RecentPlaysFeed({ plays, lang }) {
   );
 }
 
-// ── Pick progress bars ────────────────────────────────────────────────────────
+// â”€â”€ Pick progress bars â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function PickProgressBars({ picks, lang }) {
   const t = T[lang] || T.en;
@@ -389,11 +389,11 @@ function PickProgressBars({ picks, lang }) {
                 : (C.amberLine || 'rgba(255,170,0,0.3)');
 
           const mlLabel =
-            status === 'winning' || status === 'covering' ? '✓ W' :
-            status === 'losing'  || status === 'not_covering' ? '✗ L' :
-            status === 'tied' ? '— T' :
-            status === 'won'  ? '✓ WON' :
-            status === 'lost' ? '✗ LOST' : '—';
+            status === 'winning' || status === 'covering' ? 'âœ“ W' :
+            status === 'losing'  || status === 'not_covering' ? 'âœ— L' :
+            status === 'tied' ? 'â€” T' :
+            status === 'won'  ? 'âœ“ WON' :
+            status === 'lost' ? 'âœ— LOST' : 'â€”';
 
           return (
             <Box key={i}>
@@ -469,7 +469,7 @@ function PickProgressBars({ picks, lang }) {
   );
 }
 
-// ── Live game card ────────────────────────────────────────────────────────────
+// â”€â”€ Live game card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function LiveGameCard({ game, picks, lang }) {
   const [expanded, setExpanded] = useState(true);
@@ -482,8 +482,8 @@ function LiveGameCard({ game, picks, lang }) {
   const outs       = situation?.outs ?? 0;
   const balls      = situation?.balls ?? 0;
   const strikes    = situation?.strikes ?? 0;
-  const batter     = situation?.currentBatter?.name ?? '—';
-  const pitcher    = situation?.currentPitcher?.name ?? '—';
+  const batter     = situation?.currentBatter?.name ?? 'â€”';
+  const pitcher    = situation?.currentPitcher?.name ?? 'â€”';
   const runners    = situation?.runners || {};
 
   const awayRuns = game.away?.score ?? 0;
@@ -530,7 +530,7 @@ function LiveGameCard({ game, picks, lang }) {
           <Typography sx={{ fontFamily: MONO, fontSize: '1.1rem', color: C.textPrimary, fontWeight: 700, mx: '4px' }}>
             {awayRuns}
           </Typography>
-          <Typography sx={{ fontFamily: MONO, fontSize: '0.65rem', color: C.textMuted }}>–</Typography>
+          <Typography sx={{ fontFamily: MONO, fontSize: '0.65rem', color: C.textMuted }}>â€“</Typography>
           <Typography sx={{ fontFamily: MONO, fontSize: '1.1rem', color: C.textPrimary, fontWeight: 700, mx: '4px' }}>
             {homeRuns}
           </Typography>
@@ -559,10 +559,10 @@ function LiveGameCard({ game, picks, lang }) {
             color:     C.cyan,
             letterSpacing: '0.08em',
           }}>
-            ● {inningHalf}{inningNum}
+            â— {inningHalf}{inningNum}
           </Box>
           <Typography sx={{ fontFamily: MONO, fontSize: '0.65rem', color: C.textMuted }}>
-            {expanded ? '▲' : '▼'}
+            {expanded ? 'â–²' : 'â–¼'}
           </Typography>
         </Box>
       </Box>
@@ -604,12 +604,12 @@ function LiveGameCard({ game, picks, lang }) {
                   {t.count}
                 </Typography>
                 <Typography sx={{ fontFamily: MONO, fontSize: '0.75rem', color: C.cyan, letterSpacing: '0.08em' }}>
-                  {balls}–{strikes}
+                  {balls}â€“{strikes}
                 </Typography>
               </Box>
             </Box>
 
-            {/* Player photos — right side */}
+            {/* Player photos â€” right side */}
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', ml: 'auto' }}>
               {situation?.currentBatter?.id && (
                 <Box sx={{ textAlign: 'center' }}>
@@ -655,7 +655,7 @@ function LiveGameCard({ game, picks, lang }) {
   );
 }
 
-// ── Main LiveTracker component ────────────────────────────────────────────────
+// â”€â”€ Main LiveTracker component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export default function LiveTracker({ lang = 'en' }) {
   const { token } = useAuth();
@@ -729,7 +729,7 @@ export default function LiveTracker({ lang = 'en' }) {
           const progressJson = await progressRes.json();
           if (progressJson.success) setPickProgress(progressJson.data || []);
         } catch {
-          // silent — picks are optional
+          // silent â€” picks are optional
         }
       }
 
@@ -749,13 +749,13 @@ export default function LiveTracker({ lang = 'en' }) {
 
   // Format time as HH:MM:SS
   function fmtTime(d) {
-    if (!d) return '—';
+    if (!d) return 'â€”';
     return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   }
 
   return (
     <Box sx={{ maxWidth: 960, mx: 'auto', py: 2 }}>
-      {/* ── Header bar ── */}
+      {/* â”€â”€ Header bar â”€â”€ */}
       <Box sx={{
         display:        'flex',
         alignItems:     'center',
@@ -819,7 +819,7 @@ export default function LiveTracker({ lang = 'en' }) {
         </Box>
       </Box>
 
-      {/* ── Content ── */}
+      {/* â”€â”€ Content â”€â”€ */}
       {liveGames.length === 0 ? (
         <Box sx={{
           textAlign: 'center',
@@ -847,3 +847,4 @@ export default function LiveTracker({ lang = 'en' }) {
     </Box>
   );
 }
+

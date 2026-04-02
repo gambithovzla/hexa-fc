@@ -1,6 +1,6 @@
-/**
+﻿/**
  * weather-api.js
- * Real-time weather data for MLB stadiums via Open-Meteo (free, no API key required).
+ * Real-time weather data for EURO FOOTBALL stadiums via Open-Meteo (free, no API key required).
  */
 
 const _ANGELS   = { lat: 33.8003, lon: -117.8827, name: 'Angel Stadium' };
@@ -10,7 +10,7 @@ const _MARLINS   = { lat: 25.7781, lon: -80.2197,  name: 'LoanDepot Park' };
 const _RAYS      = { lat: 27.7682, lon: -82.6534,  name: 'Tropicana Field' };
 
 const STADIUM_COORDS = {
-  // ── Current canonical names ─────────────────────────────────────────────
+  // â”€â”€ Current canonical names â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   'New York Yankees':        { lat: 40.8296, lon: -73.9262, name: 'Yankee Stadium' },
   'New York Mets':           { lat: 40.7571, lon: -73.8458, name: 'Citi Field' },
   'Los Angeles Dodgers':     { lat: 34.0739, lon: -118.2400, name: 'Dodger Stadium' },
@@ -41,7 +41,7 @@ const STADIUM_COORDS = {
   'Tampa Bay Rays':          _RAYS,
   'Baltimore Orioles':       { lat: 39.2838, lon: -76.6218,  name: 'Camden Yards' },
   'Toronto Blue Jays':       { lat: 43.6414, lon: -79.3894,  name: 'Rogers Centre' },
-  // ── Aliases: renamed / relocated franchises ─────────────────────────────
+  // â”€â”€ Aliases: renamed / relocated franchises â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   'Athletics':                        _ATHLETICS,  // Sacramento/Las Vegas A's
   'Cleveland Indians':                _GUARDIANS,
   'Los Angeles Angels of Anaheim':    _ANGELS,
@@ -68,12 +68,12 @@ function buildWeatherAnalysis(hourly, index, stadiumName) {
 
   const flags = [];
 
-  if (wind > 15)              flags.push(`HIGH WIND ${wind}mph — affects fly balls significantly`);
-  else if (wind > 10)         flags.push(`MODERATE WIND ${wind}mph — minor fly ball impact`);
-  if (temp > 85)              flags.push(`HIGH TEMP ${temp}°F — ball carries farther, favor OVER`);
-  if (temp < 50)              flags.push(`COLD ${temp}°F — ball dies, favor UNDER`);
-  if (precip > 70)            flags.push(`HIGH RAIN RISK ${precip}% — consider avoiding`);
-  else if (precip > 50)       flags.push(`RAIN RISK ${precip}% — game delay possible`);
+  if (wind > 15)              flags.push(`HIGH WIND ${wind}mph â€” affects fly balls significantly`);
+  else if (wind > 10)         flags.push(`MODERATE WIND ${wind}mph â€” minor fly ball impact`);
+  if (temp > 85)              flags.push(`HIGH TEMP ${temp}Â°F â€” ball carries farther, favor OVER`);
+  if (temp < 50)              flags.push(`COLD ${temp}Â°F â€” ball dies, favor UNDER`);
+  if (precip > 70)            flags.push(`HIGH RAIN RISK ${precip}% â€” consider avoiding`);
+  else if (precip > 50)       flags.push(`RAIN RISK ${precip}% â€” game delay possible`);
 
   return flags;
 }
@@ -129,3 +129,4 @@ async function getGameWeather(homeTeam, gameTime) {
 }
 
 export { getGameWeather };
+

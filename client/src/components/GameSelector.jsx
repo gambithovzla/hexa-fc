@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Box, Checkbox, Skeleton, Typography } from '@mui/material';
+import { SoccerBall } from 'lucide-react';
 import { C, BARLOW, MONO, SANS } from '../theme';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
@@ -448,19 +449,21 @@ export default function GameSelector({
           gap: 2,
         }}
       >
-        <Typography
-          sx={{
-            fontFamily: BARLOW,
-            fontSize: '1.1rem',
-            fontWeight: 800,
-            color: C.textPrimary,
-            flexShrink: 0,
-            textTransform: 'uppercase',
-            letterSpacing: '0.1em',
-          }}
-        >
-          {t.title}
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+          <SoccerBall size={16} strokeWidth={2.2} color={C.accent} />
+          <Typography
+            sx={{
+              fontFamily: BARLOW,
+              fontSize: '1.1rem',
+              fontWeight: 800,
+              color: C.textPrimary,
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em',
+            }}
+          >
+            {t.title}
+          </Typography>
+        </Box>
 
         <input
           type="date"
@@ -568,6 +571,22 @@ export default function GameSelector({
         </Box>
       ) : matches.length === 0 ? (
         <Box sx={{ textAlign: 'center', py: 7 }}>
+          <Box
+            className="soccer-spin-emoji"
+            sx={{
+              mb: 1,
+              fontSize: '1.7rem',
+              lineHeight: 1,
+              display: 'inline-flex',
+              '@keyframes soccerSpinSmooth': {
+                from: { transform: 'rotate(0deg)' },
+                to: { transform: 'rotate(360deg)' },
+              },
+              animation: 'soccerSpinSmooth 2.8s linear infinite',
+            }}
+          >
+            {'\u26BD'}
+          </Box>
           <Typography sx={{ fontFamily: SANS, fontSize: '0.875rem', color: C.textMuted, mb: 1 }}>
             {t.noMatches}
           </Typography>

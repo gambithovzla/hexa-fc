@@ -1,11 +1,11 @@
-/**
+﻿/**
  * TerminalGuide.jsx
- * Interactive user manual — Bloomberg Terminal aesthetic.
+ * Interactive user manual â€” Bloomberg Terminal aesthetic.
  *
  * Props:
- *   open    — boolean
- *   onClose — () => void
- *   lang    — 'en' | 'es'
+ *   open    â€” boolean
+ *   onClose â€” () => void
+ *   lang    â€” 'en' | 'es'
  */
 
 import { useState, useEffect } from 'react';
@@ -19,13 +19,13 @@ const ANIM_CSS = `
 @media (prefers-reduced-motion:reduce) { * { animation:none!important } }
 `;
 
-// ── Content data ──────────────────────────────────────────────────────────────
+// â”€â”€ Content data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const TABS = [
   { id: 'oracle',    en: '1. The Oracle',          es: '1. The Oracle'            },
   { id: 'safepick',  en: '2. Safe Pick Mode',       es: '2. Safe Pick Mode'        },
   { id: 'flags',     en: '3. Alert Flags',           es: '3. Alert Flags'           },
-  { id: 'bankroll',  en: '4. Bankroll Management',   es: '4. Gestión de Bankroll'   },
+  { id: 'bankroll',  en: '4. Bankroll Management',   es: '4. GestiÃ³n de Bankroll'   },
 ];
 
 const CONTENT = {
@@ -36,43 +36,43 @@ const CONTENT = {
       sections: [
         {
           heading: 'What is The Oracle?',
-          body: `The Oracle is H.E.X.A.'s core processing system — a proprietary algorithmic engine that ingests and cross-references over 26,000 Statcast variables in real time. Built on advanced statistical modeling, it converts raw baseball data into quantified edges and actionable probability signals.`,
+          body: `The Oracle is H.E.X.A.'s core processing system â€” a proprietary algorithmic engine that ingests and cross-references over 26,000 Statcast variables in real time. Built on advanced statistical modeling, it converts raw baseball data into quantified edges and actionable probability signals.`,
         },
         {
           heading: 'Standard Mode',
           body: `Standard Mode delivers rapid analysis by processing the most impactful Statcast variables: exit velocity, xFIP, barrel rate, BABIP, sprint speed, park factors, and current-season weighted metrics. Results are returned in seconds, giving you a sharp, data-driven read on any matchup.`,
         },
         {
-          heading: 'Deep Analytics Mode  ·  PREMIUM',
+          heading: 'Deep Analytics Mode  Â·  PREMIUM',
           body: `Deep Analytics Mode unlocks the full power of the Advanced Processing System. It runs multi-layer cross-referencing across historical databases, situational splits (day/night, L/R, home/away), pitcher fatigue curves, lineup construction patterns, umpire tendencies, and weather-adjusted trajectory models. This mode is reserved for Premium users and provides the highest-confidence output the system can generate.`,
           highlight: true,
         },
         {
           heading: 'Data Sources',
-          body: `All analysis is grounded in data from MLB Statcast, the Baseball Savant API, and real-time odds feeds. No guesswork — every signal is traceable to a verifiable statistical source.`,
+          body: `All analysis is grounded in data from EURO FOOTBALL Statcast, the Baseball Savant API, and real-time odds feeds. No guesswork â€” every signal is traceable to a verifiable statistical source.`,
         },
       ],
     },
     es: {
       title: 'THE ORACLE',
-      subtitle: 'Motor Algorítmico Propietario',
+      subtitle: 'Motor AlgorÃ­tmico Propietario',
       sections: [
         {
-          heading: '¿Qué es The Oracle?',
-          body: `The Oracle es el sistema central de procesamiento de H.E.X.A. — un motor algorítmico propietario que ingiere y cruza más de 26,000 variables de Statcast en tiempo real. Construido sobre modelos estadísticos avanzados, convierte datos crudos de béisbol en ventajas cuantificadas y señales de probabilidad accionables.`,
+          heading: 'Â¿QuÃ© es The Oracle?',
+          body: `The Oracle es el sistema central de procesamiento de H.E.X.A. â€” un motor algorÃ­tmico propietario que ingiere y cruza mÃ¡s de 26,000 variables de Statcast en tiempo real. Construido sobre modelos estadÃ­sticos avanzados, convierte datos crudos de bÃ©isbol en ventajas cuantificadas y seÃ±ales de probabilidad accionables.`,
         },
         {
           heading: 'Standard Mode',
-          body: `El Modo Estándar entrega análisis rápidos procesando las variables Statcast de mayor impacto: velocidad de salida, xFIP, tasa de barril, BABIP, velocidad de carrera, factores de estadio y métricas ponderadas de la temporada actual. Los resultados se generan en segundos, brindando una lectura precisa y basada en datos de cualquier enfrentamiento.`,
+          body: `El Modo EstÃ¡ndar entrega anÃ¡lisis rÃ¡pidos procesando las variables Statcast de mayor impacto: velocidad de salida, xFIP, tasa de barril, BABIP, velocidad de carrera, factores de estadio y mÃ©tricas ponderadas de la temporada actual. Los resultados se generan en segundos, brindando una lectura precisa y basada en datos de cualquier enfrentamiento.`,
         },
         {
-          heading: 'Deep Analytics Mode  ·  PREMIUM',
-          body: `El Modo Deep Analytics desbloquea la potencia completa del Sistema de Procesamiento Avanzado. Ejecuta cruces multicapa sobre bases de datos históricas, splits situacionales (día/noche, L/D, local/visitante), curvas de fatiga del lanzador, patrones de construcción de alineación, tendencias de árbitros y modelos de trayectoria ajustados al clima. Este modo es exclusivo para usuarios Premium y genera el output de mayor confianza que el sistema puede producir.`,
+          heading: 'Deep Analytics Mode  Â·  PREMIUM',
+          body: `El Modo Deep Analytics desbloquea la potencia completa del Sistema de Procesamiento Avanzado. Ejecuta cruces multicapa sobre bases de datos histÃ³ricas, splits situacionales (dÃ­a/noche, L/D, local/visitante), curvas de fatiga del lanzador, patrones de construcciÃ³n de alineaciÃ³n, tendencias de Ã¡rbitros y modelos de trayectoria ajustados al clima. Este modo es exclusivo para usuarios Premium y genera el output de mayor confianza que el sistema puede producir.`,
           highlight: true,
         },
         {
           heading: 'Fuentes de Datos',
-          body: `Todo análisis está respaldado por datos de MLB Statcast, la API de Baseball Savant y feeds de momios en tiempo real. Sin conjeturas — cada señal es rastreable a una fuente estadística verificable.`,
+          body: `Todo anÃ¡lisis estÃ¡ respaldado por datos de EURO FOOTBALL Statcast, la API de Baseball Savant y feeds de momios en tiempo real. Sin conjeturas â€” cada seÃ±al es rastreable a una fuente estadÃ­stica verificable.`,
         },
       ],
     },
@@ -85,15 +85,15 @@ const CONTENT = {
       sections: [
         {
           heading: 'How it works',
-          body: `Safe Pick Mode costs 2 credits and triggers a simultaneous scan across all available betting markets for a selected game. The algorithm does not guess — it calculates.`,
+          body: `Safe Pick Mode costs 2 credits and triggers a simultaneous scan across all available betting markets for a selected game. The algorithm does not guess â€” it calculates.`,
         },
         {
           heading: 'Markets Analyzed',
-          body: `The system evaluates four market dimensions in parallel:\n\n• Moneyline — outright winner probability vs. implied odds\n• Run Line (±1.5) — spread-adjusted edge calculation\n• Over/Under — total runs model vs. posted totals\n• Player Props — stat projection vs. prop line variance`,
+          body: `The system evaluates four market dimensions in parallel:\n\nâ€¢ Moneyline â€” outright winner probability vs. implied odds\nâ€¢ Run Line (Â±1.5) â€” spread-adjusted edge calculation\nâ€¢ Over/Under â€” total runs model vs. posted totals\nâ€¢ Player Props â€” stat projection vs. prop line variance`,
         },
         {
           heading: 'Expected Value Engine',
-          body: `After scanning all four markets, the system applies the Expected Value formula (EV+) to each candidate:\n\nEV = (Win% × Net Profit) − (Loss% × Stake)\n\nThe market with the highest positive EV is returned as the Safe Pick. This is not a preference — it is the mathematically optimal selection given current conditions.`,
+          body: `After scanning all four markets, the system applies the Expected Value formula (EV+) to each candidate:\n\nEV = (Win% Ã— Net Profit) âˆ’ (Loss% Ã— Stake)\n\nThe market with the highest positive EV is returned as the Safe Pick. This is not a preference â€” it is the mathematically optimal selection given current conditions.`,
           highlight: true,
         },
         {
@@ -104,24 +104,24 @@ const CONTENT = {
     },
     es: {
       title: 'SAFE PICK MODE',
-      subtitle: 'Escaneo Completo de Mercado — 2 Créditos',
+      subtitle: 'Escaneo Completo de Mercado â€” 2 CrÃ©ditos',
       sections: [
         {
-          heading: 'Cómo funciona',
-          body: `El Safe Pick Mode cuesta 2 créditos y activa un escaneo simultáneo en todos los mercados de apuestas disponibles para un juego seleccionado. El algoritmo no adivina — calcula.`,
+          heading: 'CÃ³mo funciona',
+          body: `El Safe Pick Mode cuesta 2 crÃ©ditos y activa un escaneo simultÃ¡neo en todos los mercados de apuestas disponibles para un juego seleccionado. El algoritmo no adivina â€” calcula.`,
         },
         {
           heading: 'Mercados Analizados',
-          body: `El sistema evalúa cuatro dimensiones de mercado en paralelo:\n\n• Moneyline — probabilidad de ganador vs. momios implícitos\n• Run Line (±1.5) — cálculo de ventaja ajustada al spread\n• Over/Under — modelo de carreras totales vs. totales publicados\n• Props de Jugadores — proyección estadística vs. varianza de línea de prop`,
+          body: `El sistema evalÃºa cuatro dimensiones de mercado en paralelo:\n\nâ€¢ Moneyline â€” probabilidad de ganador vs. momios implÃ­citos\nâ€¢ Run Line (Â±1.5) â€” cÃ¡lculo de ventaja ajustada al spread\nâ€¢ Over/Under â€” modelo de carreras totales vs. totales publicados\nâ€¢ Props de Jugadores â€” proyecciÃ³n estadÃ­stica vs. varianza de lÃ­nea de prop`,
         },
         {
           heading: 'Motor de Valor Esperado',
-          body: `Tras escanear los cuatro mercados, el sistema aplica la fórmula de Valor Esperado (EV+) a cada candidato:\n\nEV = (% Victoria × Ganancia Neta) − (% Derrota × Apuesta)\n\nEl mercado con el EV positivo más alto se devuelve como el Safe Pick. No es una preferencia — es la selección matemáticamente óptima dadas las condiciones actuales.`,
+          body: `Tras escanear los cuatro mercados, el sistema aplica la fÃ³rmula de Valor Esperado (EV+) a cada candidato:\n\nEV = (% Victoria Ã— Ganancia Neta) âˆ’ (% Derrota Ã— Apuesta)\n\nEl mercado con el EV positivo mÃ¡s alto se devuelve como el Safe Pick. No es una preferencia â€” es la selecciÃ³n matemÃ¡ticamente Ã³ptima dadas las condiciones actuales.`,
           highlight: true,
         },
         {
-          heading: 'Cuándo usar Safe Pick',
-          body: `Usa el Safe Pick Mode cuando quieras una recomendación única de alta confianza sin evaluar manualmente múltiples mercados. Es especialmente poderoso para juegos con menús de props amplios o movimiento de línea inflado donde identificar valor real no es trivial.`,
+          heading: 'CuÃ¡ndo usar Safe Pick',
+          body: `Usa el Safe Pick Mode cuando quieras una recomendaciÃ³n Ãºnica de alta confianza sin evaluar manualmente mÃºltiples mercados. Es especialmente poderoso para juegos con menÃºs de props amplios o movimiento de lÃ­nea inflado donde identificar valor real no es trivial.`,
         },
       ],
     },
@@ -134,22 +134,22 @@ const CONTENT = {
       sections: [
         {
           heading: 'Overview',
-          body: `The Advanced Processing System does not output raw probabilities alone — it overlays a three-tier flag system to communicate signal quality, risk level, and confidence grade in a format that is immediately actionable.`,
+          body: `The Advanced Processing System does not output raw probabilities alone â€” it overlays a three-tier flag system to communicate signal quality, risk level, and confidence grade in a format that is immediately actionable.`,
         },
         {
-          heading: '🔴  Red Flags — Danger / Regression Signal',
-          body: `Red Flags indicate one of two conditions:\n\n1. Statistical Regression Risk — a player or team is performing significantly above or below their established baseline, suggesting mean reversion is imminent.\n\n2. Imminent Danger — a structural disadvantage exists in the matchup (e.g., extreme pitcher/batter split, severe fatigue marker, adverse park factor alignment) that materially reduces the probability of the expected outcome.`,
+          heading: 'ðŸ”´  Red Flags â€” Danger / Regression Signal',
+          body: `Red Flags indicate one of two conditions:\n\n1. Statistical Regression Risk â€” a player or team is performing significantly above or below their established baseline, suggesting mean reversion is imminent.\n\n2. Imminent Danger â€” a structural disadvantage exists in the matchup (e.g., extreme pitcher/batter split, severe fatigue marker, adverse park factor alignment) that materially reduces the probability of the expected outcome.`,
           flagColor: C.red,
         },
         {
-          heading: '🟡  Amber Flags — Caution / Volatility',
-          body: `Amber Flags signal elevated uncertainty in the model's projection. Common triggers include:\n\n• High variance in recent sample window\n• Conflicting signals across data sources\n• Weather conditions with meaningful run-environment impact\n• Lineup volatility (late scratches, unexpected batting order changes)\n\nAmber Flags do not invalidate a pick — they indicate that position sizing should be conservative.`,
+          heading: 'ðŸŸ¡  Amber Flags â€” Caution / Volatility',
+          body: `Amber Flags signal elevated uncertainty in the model's projection. Common triggers include:\n\nâ€¢ High variance in recent sample window\nâ€¢ Conflicting signals across data sources\nâ€¢ Weather conditions with meaningful run-environment impact\nâ€¢ Lineup volatility (late scratches, unexpected batting order changes)\n\nAmber Flags do not invalidate a pick â€” they indicate that position sizing should be conservative.`,
           flagColor: C.amber,
           highlight: false,
         },
         {
-          heading: '🟢  Green Flags — Elite Signal / Clear Edge',
-          body: `Green Flags are the system's highest-confidence markers. They fire when multiple independent data streams converge on the same conclusion:\n\n• Strong xStats alignment with actual performance\n• Favorable platoon and park factor stacking\n• Sharp money movement in the same direction\n• Historical precedent supporting the projected outcome\n\nGreen Flags represent the clearest edges the system identifies.`,
+          heading: 'ðŸŸ¢  Green Flags â€” Elite Signal / Clear Edge',
+          body: `Green Flags are the system's highest-confidence markers. They fire when multiple independent data streams converge on the same conclusion:\n\nâ€¢ Strong xStats alignment with actual performance\nâ€¢ Favorable platoon and park factor stacking\nâ€¢ Sharp money movement in the same direction\nâ€¢ Historical precedent supporting the projected outcome\n\nGreen Flags represent the clearest edges the system identifies.`,
           flagColor: C.green,
           highlight: true,
         },
@@ -157,25 +157,25 @@ const CONTENT = {
     },
     es: {
       title: 'ALERT FLAGS',
-      subtitle: 'Sistema de Clasificación de Señales',
+      subtitle: 'Sistema de ClasificaciÃ³n de SeÃ±ales',
       sections: [
         {
-          heading: 'Visión General',
-          body: `El Sistema de Procesamiento Avanzado no genera solo probabilidades brutas — superpone un sistema de banderas de tres niveles para comunicar calidad de señal, nivel de riesgo y grado de confianza en un formato inmediatamente accionable.`,
+          heading: 'VisiÃ³n General',
+          body: `El Sistema de Procesamiento Avanzado no genera solo probabilidades brutas â€” superpone un sistema de banderas de tres niveles para comunicar calidad de seÃ±al, nivel de riesgo y grado de confianza en un formato inmediatamente accionable.`,
         },
         {
-          heading: '🔴  Banderas Rojas — Peligro / Señal de Regresión',
-          body: `Las Banderas Rojas indican una de dos condiciones:\n\n1. Riesgo de Regresión Estadística — un jugador o equipo está rindiendo significativamente por encima o por debajo de su línea base establecida, sugiriendo que la regresión a la media es inminente.\n\n2. Peligro Inminente — existe una desventaja estructural en el enfrentamiento (ej. split extremo lanzador/bateador, marcador severo de fatiga, alineación adversa de factor de estadio) que reduce materialmente la probabilidad del resultado esperado.`,
+          heading: 'ðŸ”´  Banderas Rojas â€” Peligro / SeÃ±al de RegresiÃ³n',
+          body: `Las Banderas Rojas indican una de dos condiciones:\n\n1. Riesgo de RegresiÃ³n EstadÃ­stica â€” un jugador o equipo estÃ¡ rindiendo significativamente por encima o por debajo de su lÃ­nea base establecida, sugiriendo que la regresiÃ³n a la media es inminente.\n\n2. Peligro Inminente â€” existe una desventaja estructural en el enfrentamiento (ej. split extremo lanzador/bateador, marcador severo de fatiga, alineaciÃ³n adversa de factor de estadio) que reduce materialmente la probabilidad del resultado esperado.`,
           flagColor: C.red,
         },
         {
-          heading: '🟡  Banderas Ámbar — Precaución / Volatilidad',
-          body: `Las Banderas Ámbar señalan incertidumbre elevada en la proyección del modelo. Disparadores comunes incluyen:\n\n• Alta varianza en la ventana de muestra reciente\n• Señales conflictivas entre fuentes de datos\n• Condiciones climáticas con impacto significativo en el entorno de carreras\n• Volatilidad en la alineación (bajas de último momento, cambios inesperados en el orden al bate)\n\nLas Banderas Ámbar no invalidan un pick — indican que el tamaño de posición debe ser conservador.`,
+          heading: 'ðŸŸ¡  Banderas Ãmbar â€” PrecauciÃ³n / Volatilidad',
+          body: `Las Banderas Ãmbar seÃ±alan incertidumbre elevada en la proyecciÃ³n del modelo. Disparadores comunes incluyen:\n\nâ€¢ Alta varianza en la ventana de muestra reciente\nâ€¢ SeÃ±ales conflictivas entre fuentes de datos\nâ€¢ Condiciones climÃ¡ticas con impacto significativo en el entorno de carreras\nâ€¢ Volatilidad en la alineaciÃ³n (bajas de Ãºltimo momento, cambios inesperados en el orden al bate)\n\nLas Banderas Ãmbar no invalidan un pick â€” indican que el tamaÃ±o de posiciÃ³n debe ser conservador.`,
           flagColor: C.amber,
         },
         {
-          heading: '🟢  Banderas Verdes — Señal Élite / Ventaja Clara',
-          body: `Las Banderas Verdes son los marcadores de mayor confianza del sistema. Se activan cuando múltiples flujos de datos independientes convergen en la misma conclusión:\n\n• Fuerte alineación de xStats con rendimiento real\n• Apilamiento favorable de platoon y factor de estadio\n• Movimiento de dinero inteligente en la misma dirección\n• Precedente histórico que respalda el resultado proyectado\n\nLas Banderas Verdes representan las ventajas más claras que el sistema identifica.`,
+          heading: 'ðŸŸ¢  Banderas Verdes â€” SeÃ±al Ã‰lite / Ventaja Clara',
+          body: `Las Banderas Verdes son los marcadores de mayor confianza del sistema. Se activan cuando mÃºltiples flujos de datos independientes convergen en la misma conclusiÃ³n:\n\nâ€¢ Fuerte alineaciÃ³n de xStats con rendimiento real\nâ€¢ Apilamiento favorable de platoon y factor de estadio\nâ€¢ Movimiento de dinero inteligente en la misma direcciÃ³n\nâ€¢ Precedente histÃ³rico que respalda el resultado proyectado\n\nLas Banderas Verdes representan las ventajas mÃ¡s claras que el sistema identifica.`,
           flagColor: C.green,
           highlight: true,
         },
@@ -186,7 +186,7 @@ const CONTENT = {
   bankroll: {
     en: {
       title: 'BANKROLL MANAGEMENT',
-      subtitle: 'Kelly Criterion — Mathematical Stake Sizing',
+      subtitle: 'Kelly Criterion â€” Mathematical Stake Sizing',
       sections: [
         {
           heading: 'The Problem with Flat Betting',
@@ -194,56 +194,56 @@ const CONTENT = {
         },
         {
           heading: 'The Kelly Criterion',
-          body: `The system uses the Kelly Criterion — a mathematically derived formula for optimal bankroll allocation:\n\nf* = (bp − q) / b\n\nWhere:\n• f* = fraction of bankroll to wager\n• b  = net odds received (decimal odds − 1)\n• p  = estimated probability of winning\n• q  = probability of losing (1 − p)\n\nThe formula maximizes the logarithmic growth rate of your bankroll over time, which is equivalent to maximizing long-run wealth without risking ruin.`,
+          body: `The system uses the Kelly Criterion â€” a mathematically derived formula for optimal bankroll allocation:\n\nf* = (bp âˆ’ q) / b\n\nWhere:\nâ€¢ f* = fraction of bankroll to wager\nâ€¢ b  = net odds received (decimal odds âˆ’ 1)\nâ€¢ p  = estimated probability of winning\nâ€¢ q  = probability of losing (1 âˆ’ p)\n\nThe formula maximizes the logarithmic growth rate of your bankroll over time, which is equivalent to maximizing long-run wealth without risking ruin.`,
           highlight: true,
           mono: true,
         },
         {
           heading: 'How H.E.X.A. Applies It',
-          body: `After generating its probability estimate for a given pick, the system feeds that estimate — alongside the current market odds — into the Kelly formula. The output is an exact recommended stake percentage based on the calculated edge.\n\nFor example: if the system assigns 58% win probability to a pick priced at -110 (implied 52.4%), the Kelly output will reflect that 5.6% edge with a specific, proportional stake recommendation.`,
+          body: `After generating its probability estimate for a given pick, the system feeds that estimate â€” alongside the current market odds â€” into the Kelly formula. The output is an exact recommended stake percentage based on the calculated edge.\n\nFor example: if the system assigns 58% win probability to a pick priced at -110 (implied 52.4%), the Kelly output will reflect that 5.6% edge with a specific, proportional stake recommendation.`,
         },
         {
           heading: 'Fractional Kelly',
-          body: `H.E.X.A. applies a Fractional Kelly multiplier (typically 0.25×–0.5×) to the raw output. This reduces variance and protects against model uncertainty while preserving the edge-proportional sizing logic. It is the industry-standard approach used by professional sports bettors and quantitative traders alike.`,
+          body: `H.E.X.A. applies a Fractional Kelly multiplier (typically 0.25Ã—â€“0.5Ã—) to the raw output. This reduces variance and protects against model uncertainty while preserving the edge-proportional sizing logic. It is the industry-standard approach used by professional sports bettors and quantitative traders alike.`,
         },
         {
           heading: 'Discipline is the Edge',
-          body: `The Bankroll Management module is only as effective as your commitment to following it. The Kelly Criterion assumes consistent application across a large sample. Deviating from the suggested sizing — either by over-betting winners or under-betting high-edge picks — erodes the mathematical advantage the system provides.`,
+          body: `The Bankroll Management module is only as effective as your commitment to following it. The Kelly Criterion assumes consistent application across a large sample. Deviating from the suggested sizing â€” either by over-betting winners or under-betting high-edge picks â€” erodes the mathematical advantage the system provides.`,
         },
       ],
     },
     es: {
-      title: 'GESTIÓN DE BANKROLL',
-      subtitle: 'Criterio de Kelly — Dimensionamiento Matemático de Apuesta',
+      title: 'GESTIÃ“N DE BANKROLL',
+      subtitle: 'Criterio de Kelly â€” Dimensionamiento MatemÃ¡tico de Apuesta',
       sections: [
         {
           heading: 'El Problema con las Apuestas Planas',
-          body: `Las apuestas planas (apostar la misma cantidad en cada pick independientemente de la ventaja) son matemáticamente subóptimas. Ignoran la variable más crítica en la rentabilidad a largo plazo: el tamaño de tu ventaja en cada apuesta. H.E.X.A. aborda esto directamente.`,
+          body: `Las apuestas planas (apostar la misma cantidad en cada pick independientemente de la ventaja) son matemÃ¡ticamente subÃ³ptimas. Ignoran la variable mÃ¡s crÃ­tica en la rentabilidad a largo plazo: el tamaÃ±o de tu ventaja en cada apuesta. H.E.X.A. aborda esto directamente.`,
         },
         {
           heading: 'El Criterio de Kelly',
-          body: `El sistema utiliza el Criterio de Kelly — una fórmula derivada matemáticamente para la asignación óptima del bankroll:\n\nf* = (bp − q) / b\n\nDonde:\n• f* = fracción del bankroll a apostar\n• b  = momios netos recibidos (momios decimales − 1)\n• p  = probabilidad estimada de victoria\n• q  = probabilidad de derrota (1 − p)\n\nLa fórmula maximiza la tasa de crecimiento logarítmico de tu bankroll en el tiempo, equivalente a maximizar la riqueza a largo plazo sin arriesgarte a la ruina.`,
+          body: `El sistema utiliza el Criterio de Kelly â€” una fÃ³rmula derivada matemÃ¡ticamente para la asignaciÃ³n Ã³ptima del bankroll:\n\nf* = (bp âˆ’ q) / b\n\nDonde:\nâ€¢ f* = fracciÃ³n del bankroll a apostar\nâ€¢ b  = momios netos recibidos (momios decimales âˆ’ 1)\nâ€¢ p  = probabilidad estimada de victoria\nâ€¢ q  = probabilidad de derrota (1 âˆ’ p)\n\nLa fÃ³rmula maximiza la tasa de crecimiento logarÃ­tmico de tu bankroll en el tiempo, equivalente a maximizar la riqueza a largo plazo sin arriesgarte a la ruina.`,
           highlight: true,
           mono: true,
         },
         {
-          heading: 'Cómo lo Aplica H.E.X.A.',
-          body: `Tras generar su estimación de probabilidad para un pick determinado, el sistema introduce esa estimación — junto con los momios actuales del mercado — en la fórmula de Kelly. El resultado es un porcentaje exacto de apuesta recomendado basado en la ventaja calculada.\n\nPor ejemplo: si el sistema asigna 58% de probabilidad de victoria a un pick con precio de -110 (implícito 52.4%), el output de Kelly reflejará esa ventaja del 5.6% con una recomendación de apuesta específica y proporcional.`,
+          heading: 'CÃ³mo lo Aplica H.E.X.A.',
+          body: `Tras generar su estimaciÃ³n de probabilidad para un pick determinado, el sistema introduce esa estimaciÃ³n â€” junto con los momios actuales del mercado â€” en la fÃ³rmula de Kelly. El resultado es un porcentaje exacto de apuesta recomendado basado en la ventaja calculada.\n\nPor ejemplo: si el sistema asigna 58% de probabilidad de victoria a un pick con precio de -110 (implÃ­cito 52.4%), el output de Kelly reflejarÃ¡ esa ventaja del 5.6% con una recomendaciÃ³n de apuesta especÃ­fica y proporcional.`,
         },
         {
           heading: 'Kelly Fraccional',
-          body: `H.E.X.A. aplica un multiplicador de Kelly Fraccional (típicamente 0.25×–0.5×) al output bruto. Esto reduce la varianza y protege contra la incertidumbre del modelo mientras preserva la lógica de dimensionamiento proporcional a la ventaja. Es el enfoque estándar de la industria utilizado por apostadores deportivos profesionales y traders cuantitativos por igual.`,
+          body: `H.E.X.A. aplica un multiplicador de Kelly Fraccional (tÃ­picamente 0.25Ã—â€“0.5Ã—) al output bruto. Esto reduce la varianza y protege contra la incertidumbre del modelo mientras preserva la lÃ³gica de dimensionamiento proporcional a la ventaja. Es el enfoque estÃ¡ndar de la industria utilizado por apostadores deportivos profesionales y traders cuantitativos por igual.`,
         },
         {
           heading: 'La Disciplina es la Ventaja',
-          body: `El módulo de Gestión de Bankroll solo es efectivo en la medida en que te comprometas a seguirlo. El Criterio de Kelly asume aplicación consistente a lo largo de una muestra grande. Desviarse del dimensionamiento sugerido — ya sea apostando de más en ganadores o apostando de menos en picks de alta ventaja — erosiona la ventaja matemática que el sistema proporciona.`,
+          body: `El mÃ³dulo de GestiÃ³n de Bankroll solo es efectivo en la medida en que te comprometas a seguirlo. El Criterio de Kelly asume aplicaciÃ³n consistente a lo largo de una muestra grande. Desviarse del dimensionamiento sugerido â€” ya sea apostando de mÃ¡s en ganadores o apostando de menos en picks de alta ventaja â€” erosiona la ventaja matemÃ¡tica que el sistema proporciona.`,
         },
       ],
     },
   },
 };
 
-// ── Sub-components ────────────────────────────────────────────────────────────
+// â”€â”€ Sub-components â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function SidebarTab({ tab, active, lang, onClick }) {
   const label = lang === 'es' ? tab.es : tab.en;
@@ -339,8 +339,8 @@ function Section({ heading, body, highlight, mono, flagColor }) {
                     lineHeight:  mono ? 1.9 : 1.75,
                     color:       C.textSecondary,
                     letterSpacing: mono ? '0.04em' : '0.01em',
-                    mb:          line.startsWith('•') ? '4px' : 0,
-                    pl:          line.startsWith('•') ? '4px' : 0,
+                    mb:          line.startsWith('â€¢') ? '4px' : 0,
+                    pl:          line.startsWith('â€¢') ? '4px' : 0,
                   }}
                 >
                   {line}
@@ -394,7 +394,7 @@ function ContentArea({ tabId, lang }) {
         </Typography>
       </Box>
 
-      {/* Body — flows naturally, parent handles scroll */}
+      {/* Body â€” flows naturally, parent handles scroll */}
       <Box sx={{ px: '32px', py: '28px' }}>
         {data.sections.map((section, i) => (
           <Box
@@ -412,7 +412,7 @@ function ContentArea({ tabId, lang }) {
   );
 }
 
-// ── Main export ───────────────────────────────────────────────────────────────
+// â”€â”€ Main export â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export default function TerminalGuide({ open, onClose, lang = 'en' }) {
   const [activeTab, setActiveTab] = useState('oracle');
@@ -433,7 +433,7 @@ export default function TerminalGuide({ open, onClose, lang = 'en' }) {
   if (!open) return null;
 
   return (
-    /* Full-screen takeover — covers everything including the Header */
+    /* Full-screen takeover â€” covers everything including the Header */
     <Box
       sx={{
         position:   'fixed',
@@ -451,7 +451,7 @@ export default function TerminalGuide({ open, onClose, lang = 'en' }) {
       }}
     >
       <style>{ANIM_CSS}</style>
-      {/* ── Top bar ── */}
+      {/* â”€â”€ Top bar â”€â”€ */}
       <Box
         sx={{
           display:        'flex',
@@ -490,7 +490,7 @@ export default function TerminalGuide({ open, onClose, lang = 'en' }) {
               textTransform: 'uppercase',
             }}
           >
-            {lang === 'es' ? 'Guía Interactiva' : 'Interactive Guide'}
+            {lang === 'es' ? 'GuÃ­a Interactiva' : 'Interactive Guide'}
           </Typography>
         </Box>
 
@@ -521,11 +521,11 @@ export default function TerminalGuide({ open, onClose, lang = 'en' }) {
             },
           }}
         >
-          [ X ] {lang === 'es' ? 'CERRAR GUÍA' : 'CLOSE GUIDE'}
+          [ X ] {lang === 'es' ? 'CERRAR GUÃA' : 'CLOSE GUIDE'}
         </Box>
       </Box>
 
-      {/* ── Boot sequence ── */}
+      {/* â”€â”€ Boot sequence â”€â”€ */}
       {!booted && (
         <Box sx={{ flex:1, display:'flex', flexDirection:'column', justifyContent:'center', alignItems:'center', p:4 }}>
           {bootLines.map((line, i) => (
@@ -536,7 +536,7 @@ export default function TerminalGuide({ open, onClose, lang = 'en' }) {
         </Box>
       )}
 
-      {/* ── Body: sidebar + content ── */}
+      {/* â”€â”€ Body: sidebar + content â”€â”€ */}
       {booted && <Box sx={{ display: 'flex', flex: 1, minHeight: 0 }}>
         {/* Sidebar */}
         <Box
@@ -568,7 +568,7 @@ export default function TerminalGuide({ open, onClose, lang = 'en' }) {
               pt:            '4px',
             }}
           >
-            {lang === 'es' ? 'Módulos' : 'Modules'}
+            {lang === 'es' ? 'MÃ³dulos' : 'Modules'}
           </Typography>
 
           {TABS.map(tab => (
@@ -600,7 +600,7 @@ export default function TerminalGuide({ open, onClose, lang = 'en' }) {
               }}
             >
               H.E.X.A. V4<br />
-              {lang === 'es' ? 'Motor Algorítmico' : 'Algorithmic Engine'}<br />
+              {lang === 'es' ? 'Motor AlgorÃ­tmico' : 'Algorithmic Engine'}<br />
               {lang === 'es' ? 'Propietario' : 'Proprietary System'}
             </Typography>
           </Box>
@@ -614,3 +614,4 @@ export default function TerminalGuide({ open, onClose, lang = 'en' }) {
     </Box>
   );
 }
+

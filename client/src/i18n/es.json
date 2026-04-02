@@ -1,12 +1,12 @@
-{
+﻿{
   "app": {
-    "title": "Hexa Oráculo",
-    "subtitle": "Plataforma de Inteligencia MLB"
+    "title": "Hexa OrÃ¡culo",
+    "subtitle": "Plataforma de Inteligencia EURO FOOTBALL"
   },
   "nav": {
-    "game": "Análisis de Juego",
+    "game": "AnÃ¡lisis de Juego",
     "parlay": "Constructor de Parlay",
-    "fullday": "Vista Completa del Día",
+    "fullday": "Vista Completa del DÃ­a",
     "history": "Historial"
   },
   "gameSelector": {
@@ -14,70 +14,70 @@
     "date": "Fecha",
     "noGames": "No hay juegos programados para esta fecha.",
     "analyze": "Analizar Juego",
-    "analyzing": "Analizando…",
+    "analyzing": "Analizandoâ€¦",
     "selectHint": "Selecciona un juego primero"
   },
   "analysis": {
-    "title": "Análisis del Oráculo",
+    "title": "AnÃ¡lisis del OrÃ¡culo",
     "home": "Ventaja Local",
     "away": "Ventaja Visitante",
     "matchups": "Duelos Clave",
     "bets": "Recomendaciones de Apuestas",
     "risks": "Alertas de Riesgo",
-    "empty": "Selecciona un juego y haz clic en Analizar para ver el análisis."
+    "empty": "Selecciona un juego y haz clic en Analizar para ver el anÃ¡lisis."
   },
   "parlay": {
     "title": "Constructor de Parlay",
     "selectGames": "Selecciona juegos para tu parlay",
     "selected": "seleccionados",
     "analyze": "Analizar Parlay",
-    "analyzing": "Analizando…",
+    "analyzing": "Analizandoâ€¦",
     "min": "Selecciona al menos 2 juegos.",
-    "grade": "Calificación del Parlay",
+    "grade": "CalificaciÃ³n del Parlay",
     "confidence": "Confianza General",
     "legs": "Patas",
     "correlation": "Correlaciones",
     "risks": "Alertas de Riesgo"
   },
   "fullday": {
-    "title": "Análisis de Todos los Juegos del Día",
+    "title": "AnÃ¡lisis de Todos los Juegos del DÃ­a",
     "analyze": "Analizar Pizarra Completa",
-    "analyzing": "Analizando…",
-    "grade": "Calificación",
+    "analyzing": "Analizandoâ€¦",
+    "grade": "CalificaciÃ³n",
     "topPicks": "Mejores Picks",
     "avoid": "Juegos a Evitar",
     "narratives": "Narrativas Clave"
   },
   "history": {
     "title": "Historial de Picks",
-    "subtitle": "Registra tus picks del Oráculo y resultados",
-    "empty": "Sin picks aún. Ejecuta un análisis para empezar a registrar tu récord.",
+    "subtitle": "Registra tus picks del OrÃ¡culo y resultados",
+    "empty": "Sin picks aÃºn. Ejecuta un anÃ¡lisis para empezar a registrar tu rÃ©cord.",
     "totalPicks": "Picks Totales",
     "wins": "Victorias",
     "losses": "Derrotas",
     "pending": "Pendientes",
     "winRate": "Tasa de Acierto",
-    "markWin": "Ganó",
-    "markLoss": "Perdió",
+    "markWin": "GanÃ³",
+    "markLoss": "PerdiÃ³",
     "markPush": "Push",
     "pushes": "Empates/Push",
     "clearHistory": "Borrar Historial",
-    "confirmClear": "¿Confirmar? Clic de nuevo",
+    "confirmClear": "Â¿Confirmar? Clic de nuevo",
     "mode": {
       "single": "Individual",
       "parlay": "Parlay",
-      "fullDay": "Día Completo",
-      "fullday": "Día Completo",
+      "fullDay": "DÃ­a Completo",
+      "fullday": "DÃ­a Completo",
       "batch": "Batch Scan",
       "live": "En Vivo"
     },
     "result": {
-      "win": "GANÓ",
-      "loss": "PERDIÓ",
+      "win": "GANÃ“",
+      "loss": "PERDIÃ“",
       "push": "PUSH",
       "pending": "PENDIENTE"
     },
-    "noPickExtracted": "—",
+    "noPickExtracted": "â€”",
     "confidence": "Confianza"
   },
   "confidence": {
@@ -88,8 +88,8 @@
   "odds": {
     "title": "Momios del Mercado",
     "moneyline": "Moneyline",
-    "runLine": "Línea de Corridas",
-    "overUnder": "Más/Menos",
+    "runLine": "LÃ­nea de Corridas",
+    "overUnder": "MÃ¡s/Menos",
     "bet": "Apostar",
     "profit": "Ganancia",
     "total": "Total",
@@ -100,3 +100,4 @@
     "noOdds": "Momios no disponibles"
   }
 }
+

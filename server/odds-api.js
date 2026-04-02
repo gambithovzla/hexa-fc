@@ -1,11 +1,11 @@
-/**
- * odds-api.js — The Odds API integration for H.E.X.A. V4
+﻿/**
+ * odds-api.js â€” The Odds API integration for H.E.X.A. V4
  *
  * Exports:
- *   getGameOdds()                               — fetch + cache MLB odds (5 min TTL)
- *   matchOddsToGame(oddsData, home, away)        — fuzzy-match a game
- *   convertOdds(americanOdds)                   — American → decimal
- *   calculatePayout(stake, americanOdds)         — compute potential payout
+ *   getGameOdds()                               â€” fetch + cache EURO FOOTBALL odds (5 min TTL)
+ *   matchOddsToGame(oddsData, home, away)        â€” fuzzy-match a game
+ *   convertOdds(americanOdds)                   â€” American â†’ decimal
+ *   calculatePayout(stake, americanOdds)         â€” compute potential payout
  */
 
 const ODDS_API_BASE = 'https://api.the-odds-api.com/v4';
@@ -21,7 +21,7 @@ function isSpringTraining(date = new Date()) {
   const m = date.getMonth() + 1; // 1-indexed
   const d = date.getDate();
   const y = date.getFullYear();
-  // Spring Training: March 1 – March 26 any year
+  // Spring Training: March 1 â€“ March 26 any year
   return (m === 3 && d >= 1 && d <= 26);
 }
 
@@ -64,7 +64,7 @@ export async function getGameOdds(sportKey = 'baseball_mlb') {
   console.log('[odds-api] Spring Training:', isSpringTraining());
 
   if (!apiKey) {
-    console.warn('[odds-api] ODDS_API_KEY not set — skipping fetch');
+    console.warn('[odds-api] ODDS_API_KEY not set â€” skipping fetch');
     return [];
   }
 
@@ -85,7 +85,7 @@ export async function getGameOdds(sportKey = 'baseball_mlb') {
 
     if (!res.ok) {
       const body = await res.text().catch(() => '');
-      console.warn(`[odds-api] API error ${res.status} — body: ${body.substring(0, 200)}`);
+      console.warn(`[odds-api] API error ${res.status} â€” body: ${body.substring(0, 200)}`);
       console.warn('[odds-api] Note: The Odds API does not list Spring Training games. Returning cached data.');
       return cached?.data ?? [];
     }
@@ -94,7 +94,7 @@ export async function getGameOdds(sportKey = 'baseball_mlb') {
     console.log('[odds-api] Raw events returned:', Array.isArray(raw) ? raw.length : 'not an array', typeof raw === 'string' ? raw.substring(0, 200) : '');
 
     if (Array.isArray(raw) && raw.length === 0) {
-      console.warn('[odds-api] 0 events returned — likely Spring Training (no MLB regular season games listed)');
+      console.warn('[odds-api] 0 events returned â€” likely Spring Training (no EURO FOOTBALL regular season games listed)');
     }
 
     const data = (Array.isArray(raw) ? raw : []).map(normalizeEvent).filter(Boolean);
@@ -197,11 +197,11 @@ function normalizeEvent(event) {
 
 /**
  * Fuzzy-matches an odds data array to a specific game by team names.
- * Handles variations between MLB Stats API and The Odds API team naming.
+ * Handles variations between EURO FOOTBALL Stats API and The Odds API team naming.
  *
- * @param {Array}  oddsData      — result from getGameOdds()
- * @param {string} homeTeamName  — home team full name from MLB Stats API
- * @param {string} awayTeamName  — away team full name from MLB Stats API
+ * @param {Array}  oddsData      â€” result from getGameOdds()
+ * @param {string} homeTeamName  â€” home team full name from EURO FOOTBALL Stats API
+ * @param {string} awayTeamName  â€” away team full name from EURO FOOTBALL Stats API
  * @returns {object|null}
  */
 export function matchOddsToGame(oddsData, homeTeamName, awayTeamName) {
@@ -227,7 +227,7 @@ export function matchOddsToGame(oddsData, homeTeamName, awayTeamName) {
 
   // Fallback: return estimated mock odds during Spring Training
   if (isSpringTraining()) {
-    console.log(`[odds-api] No real odds found for ${awayTeamName} @ ${homeTeamName} — using Spring Training estimated lines`);
+    console.log(`[odds-api] No real odds found for ${awayTeamName} @ ${homeTeamName} â€” using Spring Training estimated lines`);
     return getMockOddsForGame(homeTeamName, awayTeamName);
   }
 
@@ -267,8 +267,8 @@ export function convertOdds(americanOdds) {
 
 /**
  * Calculates potential payout for a given stake and American odds.
- *   Positive: profit = stake × (american / 100)
- *   Negative: profit = stake × (100 / |american|)
+ *   Positive: profit = stake Ã— (american / 100)
+ *   Negative: profit = stake Ã— (100 / |american|)
  *
  * @param {number} stake
  * @param {number} americanOdds
@@ -286,3 +286,4 @@ export function calculatePayout(stake, americanOdds) {
     totalPayout: Math.round((s + profit) * 100) / 100,
   };
 }
+
