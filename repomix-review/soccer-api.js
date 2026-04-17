@@ -37,10 +37,6 @@ export async function getMatchById(matchId, dateStr) {
   return soccerProvider.getMatchById(matchId, dateStr);
 }
 
-export async function getMatchEvents(fixtureId) {
-  return soccerProvider.getMatchEvents(fixtureId);
-}
-
 export async function getMatchLineups(fixtureId) {
   return soccerProvider.getMatchLineups(fixtureId);
 }

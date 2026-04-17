@@ -1,6 +1,6 @@
 /**
  * ResultCard.jsx
- * Renders H.E.X.A. V4 JSON responses for single game, parlay, and full-day modes.
+ * Renders H.E.X.A. F.C. JSON responses for single-match, parlay, and full-slate modes.
  *
  * Props:
  *   data  — the parsed HEXA JSON (data.data from oracle response)
@@ -39,9 +39,9 @@ const L = {
     leg:              'Leg',
     odds: {
       title:      'Market Odds',
-      moneyline:  'ML',
-      runLine:    'RL',
-      overUnder:  'O/U',
+      moneyline:  '1X2',
+      runLine:    'AH',
+      overUnder:  'O/U Goals',
       betAmount:  'Stake',
       parlayOdds: 'Parlay Odds',
       combined:   'Combined',
@@ -49,9 +49,9 @@ const L = {
     },
     disclaimers: {
       humanTitle:   '⚠️ IMPORTANT NOTICE',
-      humanBody:    'H.E.X.A. is an advanced statistical analysis system. All analysis is subject to unpredictable human factors: last-minute injuries, manager decisions, real-time weather conditions, and natural game variance. Sports betting carries financial risk. Only bet what you can afford to lose.',
+      humanBody:    'H.E.X.A. is an advanced statistical analysis system. All analysis is subject to unpredictable football variables: late injuries, coach decisions, live weather conditions, and natural match variance. Sports betting carries financial risk. Only bet what you can afford to lose.',
       lineupTitle:  '📋 LINEUPS',
-      lineupBody:   'For greater accuracy, it is recommended to wait until official lineups are released (generally 3–4 hours before game time) before requesting analysis.',
+      lineupBody:   'For greater accuracy, it is recommended to wait until official lineups are released before requesting analysis.',
       showMore:     'Show',
       showLess:     'Hide',
     },
@@ -79,9 +79,9 @@ const L = {
     leg:              'Pata',
     odds: {
       title:      'Momios del Mercado',
-      moneyline:  'ML',
-      runLine:    'Línea',
-      overUnder:  'M/M',
+      moneyline:  '1X2',
+      runLine:    'AH',
+      overUnder:  'M/M Goles',
       betAmount:  'Monto',
       parlayOdds: 'Momios del Parlay',
       combined:   'Combinado',
@@ -89,9 +89,9 @@ const L = {
     },
     disclaimers: {
       humanTitle:   '⚠️ AVISO IMPORTANTE',
-      humanBody:    'H.E.X.A. es un sistema de análisis estadístico avanzado. Todo análisis está sujeto al factor humano impredecible: lesiones de último momento, decisiones del manager, condiciones climáticas en tiempo real y varianza natural del juego. Las apuestas deportivas conllevan riesgo financiero. Apuesta solo lo que estás dispuesto a perder.',
+      humanBody:    'H.E.X.A. es un sistema de análisis estadístico avanzado. Todo análisis está sujeto a variables impredecibles del fútbol: lesiones de último momento, decisiones del entrenador, condiciones climáticas en tiempo real y varianza natural del partido. Las apuestas deportivas conllevan riesgo financiero. Apuesta solo lo que estás dispuesto a perder.',
       lineupTitle:  '📋 ALINEACIONES',
-      lineupBody:   'Para mayor precisión, se recomienda esperar a que las alineaciones oficiales sean publicadas (generalmente 3–4 horas antes del juego) antes de solicitar el análisis.',
+      lineupBody:   'Para mayor precisión, se recomienda esperar a que se publiquen las alineaciones oficiales antes de solicitar el análisis.',
       showMore:     'Ver',
       showLess:     'Ocultar',
     },
@@ -329,34 +329,92 @@ function sanitizeOdds(n) {
   return isValidOdds(num) ? num : null;
 }
 
+function normalizePickText(value) {
+  return String(value ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
+function selectionMentions(selection, candidate) {
+  const normalizedSelection = normalizePickText(selection);
+  const normalizedCandidate = normalizePickText(candidate);
+  if (!normalizedSelection || !normalizedCandidate) return false;
+  if (normalizedSelection.includes(normalizedCandidate)) return true;
+
+  const candidateTokens = normalizedCandidate
+    .split(/[^a-z0-9]+/)
+    .filter((token) => token.length >= 3);
+
+  return candidateTokens.some((token) => normalizedSelection.includes(token));
+}
+
+function resolvePickSide(selection, matchup, oddsObj) {
+  const normalizedSelection = normalizePickText(selection);
+  if (!normalizedSelection) return null;
+
+  if (/\b(draw|empate|tie)\b/.test(normalizedSelection)) return 'draw';
+  if (/\b(home|local)\b/.test(normalizedSelection)) return 'home';
+  if (/\b(away|visitor|visitante)\b/.test(normalizedSelection)) return 'away';
+
+  if (selectionMentions(selection, oddsObj?.homeTeam)) return 'home';
+  if (selectionMentions(selection, oddsObj?.awayTeam)) return 'away';
+
+  const [awayToken = '', homeToken = ''] = String(matchup ?? '').split(/\s+(?:@|vs\.?|at|-)\s+/i);
+  if (selectionMentions(selection, awayToken)) return 'away';
+  if (selectionMentions(selection, homeToken)) return 'home';
+
+  return null;
+}
+
+function resolveDisplayedOdds({ selection, marketType, matchup, oddsObj }) {
+  if (!oddsObj?.odds) return null;
+
+  const normalizedSelection = normalizePickText(selection);
+  const normalizedMarketType = normalizePickText(marketType);
+  const { moneyline: oneXTwo, runLine: asianHandicap, overUnder } = oddsObj.odds;
+
+  if (/^(over|o\b|mas de|alta)/.test(normalizedSelection) || normalizedMarketType.includes('over')) {
+    return sanitizeOdds(overUnder?.overPrice);
+  }
+
+  if (/^(under|u\b|menos de|baja)/.test(normalizedSelection) || normalizedMarketType.includes('under')) {
+    return sanitizeOdds(overUnder?.underPrice);
+  }
+
+  const side = resolvePickSide(selection, matchup, oddsObj);
+  const isAsianHandicap =
+    normalizedMarketType.includes('asian') ||
+    normalizedMarketType.includes('handicap') ||
+    /\b(asian handicap|handicap|ah)\b/.test(normalizedSelection) ||
+    /\s[+-]\d+(\.\d+)?\b/.test(normalizedSelection);
+
+  if (isAsianHandicap) {
+    if (side === 'away') return sanitizeOdds(asianHandicap?.away?.price);
+    if (side === 'home') return sanitizeOdds(asianHandicap?.home?.price);
+    return null;
+  }
+
+  if (side === 'draw') return sanitizeOdds(oneXTwo?.draw);
+  if (side === 'away') return sanitizeOdds(oneXTwo?.away);
+  if (side === 'home') return sanitizeOdds(oneXTwo?.home);
+
+  return sanitizeOdds(oneXTwo?.home ?? oneXTwo?.away ?? oneXTwo?.draw);
+}
+
 /**
  * Determines the most relevant American odds for a parlay leg from The Odds API data only.
  * Never reads from leg.odds or any Claude-generated field.
  * Returns null if no valid real odds found — caller will use estimated default.
  */
 function getLegOdds(leg, oddsObj) {
-  if (!oddsObj?.odds) return null;
-  const pick = String(leg?.pick ?? '').toLowerCase();
-  const { moneyline: ml, runLine: rl, overUnder: ou } = oddsObj.odds;
-
-  let raw = null;
-  if (pick.includes('over'))  raw = ou?.overPrice;
-  else if (pick.includes('under')) raw = ou?.underPrice;
-  else if (pick.includes('1.5') || pick.includes('run line')) {
-    const parts    = String(leg?.game ?? '').split('@');
-    const homeAbbr = (parts[1] ?? '').trim().split(/\s+/)[0].toLowerCase();
-    const awayAbbr = (parts[0] ?? '').trim().split(/\s+/)[0].toLowerCase();
-    if (homeAbbr && pick.includes(homeAbbr)) raw = rl?.home?.price;
-    else if (awayAbbr && pick.includes(awayAbbr)) raw = rl?.away?.price;
-    else raw = rl?.home?.price;
-  } else {
-    // moneyline — determine direction from game string
-    const parts    = String(leg?.game ?? '').split('@');
-    const homeAbbr = (parts[1] ?? '').trim().split(/\s+/)[0].toLowerCase();
-    const awayAbbr = (parts[0] ?? '').trim().split(/\s+/)[0].toLowerCase();
-    raw = (awayAbbr && pick.includes(awayAbbr)) ? ml?.away : ml?.home;
-  }
-  return sanitizeOdds(raw);
+  return resolveDisplayedOdds({
+    selection: leg?.pick ?? '',
+    marketType: leg?.type ?? '',
+    matchup: leg?.game ?? leg?.matchup ?? '',
+    oddsObj,
+  });
 }
 
 // Industry-standard estimated odds when no real API data is available
@@ -455,16 +513,13 @@ function OddsPanel({ odds, hexa, t }) {
   const { moneyline: ml, runLine: rl, overUnder: ou } = odds;
   const f = (n) => fmtAm(n, decimal);
 
-  // Determine best-pick odds from bp.type
   const bp = hexa?.best_pick;
-  let bpOdds = null;
-  if (bp) {
-    const tp = String(bp.type ?? '').toLowerCase();
-    if (tp.includes('over'))                                          bpOdds = ou.overPrice;
-    else if (tp.includes('under'))                                    bpOdds = ou.underPrice;
-    else if (tp.includes('run') || tp.includes('spread') || tp.includes('line')) bpOdds = rl.home.price;
-    else                                                              bpOdds = ml.home;
-  }
+  const bpOdds = resolveDisplayedOdds({
+    selection: bp?.detail ?? hexa?.master_prediction?.pick ?? '',
+    marketType: bp?.type ?? '',
+    matchup: hexa?.matchup ?? hexa?.odds?.game ?? '',
+    oddsObj: hexa?.odds,
+  });
 
   const mpPayout = calcPayout(stake, ml.home);
   const bpPayout = bpOdds != null ? calcPayout(stake, bpOdds) : null;
@@ -1202,7 +1257,12 @@ function SingleGameResult({ hexa, t }) {
         <AgregarABanca
           matchup={hexa.matchup ?? hexa.odds?.game ?? ''}
           pick={mp.pick ?? ''}
-          odds={hexa.odds?.odds?.moneyline?.home ?? null}
+          odds={resolveDisplayedOdds({
+            selection: mp.pick ?? bp?.detail ?? '',
+            marketType: bp?.type ?? '',
+            matchup: hexa.matchup ?? hexa.odds?.game ?? '',
+            oddsObj: hexa.odds,
+          })}
           confidence={confidence}
         />
       </Box>

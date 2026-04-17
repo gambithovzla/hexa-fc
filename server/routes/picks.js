@@ -17,16 +17,22 @@ const router = Router();
 
 /**
  * Detect pick type from the pick string.
- * Priority: over → under → runline → prop → moneyline
+ * Football buckets: 1X2, Asian Handicap, Over/Under Goals
  */
+function normalizePickText(value) {
+  return String(value ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
 function detectPickType(pick) {
-  if (!pick) return 'moneyline';
-  if (/Over/i.test(pick)) return 'over';
-  if (/Under/i.test(pick)) return 'under';
-  if (/Run Line|\+1\.5|-1\.5/i.test(pick)) return 'runline';
-  // Player prop heuristic: "F. Lastname" pattern or common prop keywords
-  if (/\b[A-Z]\.\s+[A-Z][a-z]+|Total Bases|Strikeouts?|Home Runs?|Hits?\b|RBIs?|\bWalks?\b|ERA\b|WHIP\b/i.test(pick)) return 'prop';
-  return 'moneyline';
+  const normalizedPick = normalizePickText(pick);
+  if (!normalizedPick) return 'one_x_two';
+  if (/(over|under|mas de|menos de|goals|goles|o\/u)/.test(normalizedPick)) return 'over_under_goals';
+  if (/(asian handicap|handicap|ah|\s[+-]\d+(\.\d+)?)/.test(normalizedPick)) return 'asian_handicap';
+  return 'one_x_two';
 }
 
 /**

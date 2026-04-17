@@ -1,71 +1,113 @@
-﻿/**
- * odds-api.js â€” The Odds API integration for H.E.X.A. V4
+/**
+ * odds-api.js - The Odds API integration for H.E.X.A. F.C.
  *
  * Exports:
- *   getGameOdds()                               â€” fetch + cache EURO FOOTBALL odds (5 min TTL)
- *   matchOddsToGame(oddsData, home, away)        â€” fuzzy-match a game
- *   convertOdds(americanOdds)                   â€” American â†’ decimal
- *   calculatePayout(stake, americanOdds)         â€” compute potential payout
+ *   getOdds() - fetch + cache football odds by leagueId or all supported leagues
+ *   getGameOdds() - backward-compatible wrapper
+ *   matchOddsToGame(oddsData, home, away) - fuzzy-match a game
+ *   calculateImpliedProbability(americanOdds) - American to implied probability
+ *   convertOdds(americanOdds) - American to decimal
+ *   calculatePayout(stake, americanOdds) - compute potential payout
  */
+
+import { ODDS_API_MAP } from './soccer-api.js';
 
 const ODDS_API_BASE = 'https://api.the-odds-api.com/v4';
-const CACHE_TTL_MS  = 60 * 60 * 1000; // 60 minutes
+const CACHE_TTL_MS = 60 * 60 * 1000;
+const AGGREGATE_CACHE_KEY = '__all_soccer__';
 
-let _cache = new Map();
+const _cache = new Map();
+const FOOTBALL_MARKETS = Object.freeze({
+  oneXTwo: '1X2',
+  overUnder: 'Over/Under',
+  asianHandicap: 'Asian Handicap',
+});
 
-// ---------------------------------------------------------------------------
-// Spring Training detection + mock odds
-// ---------------------------------------------------------------------------
-
-function isSpringTraining(date = new Date()) {
-  const m = date.getMonth() + 1; // 1-indexed
-  const d = date.getDate();
-  const y = date.getFullYear();
-  // Spring Training: March 1 â€“ March 26 any year
-  return (m === 3 && d >= 1 && d <= 26);
+function getSupportedSportKeys() {
+  return [...new Set(Object.values(ODDS_API_MAP).filter(Boolean))];
 }
 
-function getMockOddsForGame(homeTeam, awayTeam) {
-  return {
-    homeTeam,
-    awayTeam,
-    odds: {
-      moneyline: { home: -110, away: -110 },
-      runLine: {
-        home: { spread: -1.5, price: 120 },
-        away: { spread:  1.5, price: -140 },
-      },
-      overUnder: {
-        total:      8.5,
-        overPrice:  -110,
-        underPrice: -110,
-      },
-    },
-    source: 'estimated_spring_training',
-  };
+function resolveSportKeys(input = null) {
+  if (input == null || input === '') {
+    return getSupportedSportKeys();
+  }
+
+  if (typeof input === 'number' || /^\d+$/.test(String(input))) {
+    const leagueId = Number(input);
+    const sportKey = ODDS_API_MAP[leagueId];
+    return sportKey ? [sportKey] : [];
+  }
+
+  const sportKey = String(input).trim();
+  return getSupportedSportKeys().includes(sportKey) ? [sportKey] : [];
 }
 
-// ---------------------------------------------------------------------------
-// getGameOdds
-// ---------------------------------------------------------------------------
+async function fetchOddsForSportKey(sportKey, apiKey) {
+  const cacheKey = sportKey || AGGREGATE_CACHE_KEY;
+  const cached = _cache.get(cacheKey);
+
+  if (cached?.data && Date.now() - cached.ts < CACHE_TTL_MS) {
+    console.log('[odds-api] Returning cached data for', cacheKey, cached.data.length, 'events');
+    return cached.data;
+  }
+
+  const url =
+    `${ODDS_API_BASE}/sports/${sportKey}/odds/?` +
+    `apiKey=${apiKey}&regions=us&markets=h2h,spreads,totals&oddsFormat=american&dateFormat=iso`;
+
+  console.log('[odds-api] Fetching URL:', url.replace(apiKey, `${apiKey.substring(0, 8)}...`));
+
+  const res = await fetch(url);
+  console.log('[odds-api] Response status:', sportKey, res.status, res.statusText);
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    console.warn(`[odds-api] API error ${sportKey} ${res.status} - body: ${body.substring(0, 200)}`);
+    return cached?.data ?? [];
+  }
+
+  const raw = await res.json();
+  console.log(
+    '[odds-api] Raw events returned:',
+    sportKey,
+    Array.isArray(raw) ? raw.length : 'not an array',
+    typeof raw === 'string' ? raw.substring(0, 200) : '',
+  );
+
+  const data = (Array.isArray(raw) ? raw : [])
+    .map((event) => normalizeEvent(event, sportKey))
+    .filter(Boolean);
+
+  _cache.set(cacheKey, { data, ts: Date.now() });
+  return data;
+}
 
 /**
- * Fetches odds from The Odds API for the provided sport key.
- * Results are cached for 5 minutes to conserve API quota.
+ * Fetches football odds from The Odds API by leagueId.
+ * When no leagueId is provided, it aggregates every supported football league from ODDS_API_MAP.
  *
- * @param {string} sportKey
- * @returns {Promise<Array>} Array of normalized game odds objects
+ * @param {number|string|null} leagueId
+ * @returns {Promise<Array>}
  */
-export async function getGameOdds(sportKey = 'baseball_mlb') {
+export async function getOdds(leagueId = null) {
   const apiKey = process.env.ODDS_API_KEY;
-  const cached = _cache.get(sportKey);
+  const sportKeys = resolveSportKeys(leagueId);
+  const isSingleLeague = sportKeys.length === 1;
+  const resolvedSportKey = isSingleLeague ? sportKeys[0] : AGGREGATE_CACHE_KEY;
+  const cached = _cache.get(resolvedSportKey);
 
   console.log('[odds-api] API key present:', apiKey ? `${apiKey.substring(0, 8)}...` : 'MISSING');
-  console.log('[odds-api] Spring Training:', isSpringTraining());
+  console.log('[odds-api] Requested leagueId:', leagueId ?? 'all');
+  console.log('[odds-api] Resolved sport keys:', sportKeys.join(', ') || 'none');
 
   if (!apiKey) {
-    console.warn('[odds-api] ODDS_API_KEY not set â€” skipping fetch');
+    console.warn('[odds-api] ODDS_API_KEY not set - skipping fetch');
     return [];
+  }
+
+  if (!sportKeys.length) {
+    console.warn('[odds-api] No supported football sport key found for leagueId:', leagueId);
+    return cached?.data ?? [];
   }
 
   if (cached?.data && Date.now() - cached.ts < CACHE_TTL_MS) {
@@ -74,32 +116,21 @@ export async function getGameOdds(sportKey = 'baseball_mlb') {
   }
 
   try {
-    const url =
-      `${ODDS_API_BASE}/sports/${sportKey}/odds/?` +
-      `apiKey=${apiKey}&regions=us&markets=h2h,spreads,totals&oddsFormat=american&dateFormat=iso`;
-
-    console.log('[odds-api] Fetching URL:', url.replace(apiKey, `${apiKey.substring(0, 8)}...`));
-
-    const res = await fetch(url);
-    console.log('[odds-api] Response status:', res.status, res.statusText);
-
-    if (!res.ok) {
-      const body = await res.text().catch(() => '');
-      console.warn(`[odds-api] API error ${res.status} â€” body: ${body.substring(0, 200)}`);
-      console.warn('[odds-api] Note: The Odds API does not list Spring Training games. Returning cached data.');
-      return cached?.data ?? [];
+    if (isSingleLeague) {
+      return await fetchOddsForSportKey(sportKeys[0], apiKey);
     }
 
-    const raw  = await res.json();
-    console.log('[odds-api] Raw events returned:', Array.isArray(raw) ? raw.length : 'not an array', typeof raw === 'string' ? raw.substring(0, 200) : '');
+    const results = await Promise.all(
+      sportKeys.map((currentSportKey) => fetchOddsForSportKey(currentSportKey, apiKey))
+    );
 
-    if (Array.isArray(raw) && raw.length === 0) {
-      console.warn('[odds-api] 0 events returned â€” likely Spring Training (no EURO FOOTBALL regular season games listed)');
+    const data = results.flat();
+    if (!data.length) {
+      console.warn('[odds-api] 0 football events returned across supported leagues');
     }
 
-    const data = (Array.isArray(raw) ? raw : []).map(normalizeEvent).filter(Boolean);
+    _cache.set(AGGREGATE_CACHE_KEY, { data, ts: Date.now() });
     console.log('[odds-api] Normalized events:', data.length);
-    _cache.set(sportKey, { data, ts: Date.now() });
     return data;
   } catch (err) {
     console.error('[odds-api] fetch error:', err.message);
@@ -107,53 +138,57 @@ export async function getGameOdds(sportKey = 'baseball_mlb') {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Internal helpers
-// ---------------------------------------------------------------------------
+export async function getGameOdds(leagueIdOrSportKey = null) {
+  return getOdds(leagueIdOrSportKey);
+}
 
 function avg(arr) {
   if (!arr.length) return null;
-  return arr.reduce((s, v) => s + v, 0) / arr.length;
+  return arr.reduce((sum, value) => sum + value, 0) / arr.length;
 }
 
-/**
- * Normalizes a raw Odds API event into H.E.X.A.'s internal format.
- * Averages the top-3 bookmakers to smooth line discrepancies.
- */
-function normalizeEvent(event) {
+function normalizeEvent(event, sportKey) {
   if (!event?.bookmakers?.length) return null;
 
   const books = event.bookmakers.slice(0, 3);
 
-  const mlHome = [], mlAway = [];
-  const rlHomeSpread = [], rlHomePrice = [], rlAwaySpread = [], rlAwayPrice = [];
-  const ouTotal = [], ouOver = [], ouUnder = [];
+  const mlHome = [];
+  const mlDraw = [];
+  const mlAway = [];
+  const rlHomeSpread = [];
+  const rlHomePrice = [];
+  const rlAwaySpread = [];
+  const rlAwayPrice = [];
+  const ouTotal = [];
+  const ouOver = [];
+  const ouUnder = [];
 
   for (const book of books) {
     for (const market of book.markets ?? []) {
       switch (market.key) {
         case 'h2h':
-          for (const o of market.outcomes ?? []) {
-            if (o.name === event.home_team) mlHome.push(o.price);
-            else mlAway.push(o.price);
+          for (const outcome of market.outcomes ?? []) {
+            if (outcome.name === event.home_team) mlHome.push(outcome.price);
+            else if (outcome.name === 'Draw') mlDraw.push(outcome.price);
+            else if (outcome.name === event.away_team) mlAway.push(outcome.price);
           }
           break;
         case 'spreads':
-          for (const o of market.outcomes ?? []) {
-            if (o.name === event.home_team) {
-              rlHomeSpread.push(o.point);
-              rlHomePrice.push(o.price);
-            } else {
-              rlAwaySpread.push(o.point);
-              rlAwayPrice.push(o.price);
+          for (const outcome of market.outcomes ?? []) {
+            if (outcome.name === event.home_team) {
+              rlHomeSpread.push(outcome.point);
+              rlHomePrice.push(outcome.price);
+            } else if (outcome.name === event.away_team) {
+              rlAwaySpread.push(outcome.point);
+              rlAwayPrice.push(outcome.price);
             }
           }
           break;
         case 'totals':
-          for (const o of market.outcomes ?? []) {
-            ouTotal.push(o.point);
-            if (o.name === 'Over') ouOver.push(o.price);
-            else ouUnder.push(o.price);
+          for (const outcome of market.outcomes ?? []) {
+            ouTotal.push(outcome.point);
+            if (outcome.name === 'Over') ouOver.push(outcome.price);
+            else if (outcome.name === 'Under') ouUnder.push(outcome.price);
           }
           break;
       }
@@ -161,129 +196,153 @@ function normalizeEvent(event) {
   }
 
   const mlHomeAvg = avg(mlHome);
+  const mlDrawAvg = avg(mlDraw);
   const mlAwayAvg = avg(mlAway);
-  if (mlHomeAvg == null && mlAwayAvg == null) return null;
+
+  if (mlHomeAvg == null && mlDrawAvg == null && mlAwayAvg == null) {
+    return null;
+  }
 
   return {
+    sportKey,
     homeTeam: event.home_team,
     awayTeam: event.away_team,
+    commenceTime: event.commence_time ?? null,
+    markets: {
+      [FOOTBALL_MARKETS.oneXTwo]: {
+        home: mlHomeAvg != null ? Math.round(mlHomeAvg) : null,
+        draw: mlDrawAvg != null ? Math.round(mlDrawAvg) : null,
+        away: mlAwayAvg != null ? Math.round(mlAwayAvg) : null,
+      },
+      [FOOTBALL_MARKETS.overUnder]: {
+        total: ouTotal.length ? +(avg(ouTotal).toFixed(1)) : null,
+        overPrice: ouOver.length ? Math.round(avg(ouOver)) : null,
+        underPrice: ouUnder.length ? Math.round(avg(ouUnder)) : null,
+      },
+      [FOOTBALL_MARKETS.asianHandicap]: {
+        home: {
+          spread: rlHomeSpread.length ? +(avg(rlHomeSpread).toFixed(1)) : null,
+          price: rlHomePrice.length ? Math.round(avg(rlHomePrice)) : null,
+        },
+        away: {
+          spread: rlAwaySpread.length ? +(avg(rlAwaySpread).toFixed(1)) : null,
+          price: rlAwayPrice.length ? Math.round(avg(rlAwayPrice)) : null,
+        },
+      },
+    },
     odds: {
       moneyline: {
         home: mlHomeAvg != null ? Math.round(mlHomeAvg) : null,
+        draw: mlDrawAvg != null ? Math.round(mlDrawAvg) : null,
         away: mlAwayAvg != null ? Math.round(mlAwayAvg) : null,
       },
       runLine: {
         home: {
           spread: rlHomeSpread.length ? +(avg(rlHomeSpread).toFixed(1)) : null,
-          price:  rlHomePrice.length  ? Math.round(avg(rlHomePrice))    : null,
+          price: rlHomePrice.length ? Math.round(avg(rlHomePrice)) : null,
         },
         away: {
           spread: rlAwaySpread.length ? +(avg(rlAwaySpread).toFixed(1)) : null,
-          price:  rlAwayPrice.length  ? Math.round(avg(rlAwayPrice))    : null,
+          price: rlAwayPrice.length ? Math.round(avg(rlAwayPrice)) : null,
         },
       },
       overUnder: {
-        total:      ouTotal.length  ? +(avg(ouTotal).toFixed(1))  : null,
-        overPrice:  ouOver.length   ? Math.round(avg(ouOver))     : null,
-        underPrice: ouUnder.length  ? Math.round(avg(ouUnder))    : null,
+        total: ouTotal.length ? +(avg(ouTotal).toFixed(1)) : null,
+        overPrice: ouOver.length ? Math.round(avg(ouOver)) : null,
+        underPrice: ouUnder.length ? Math.round(avg(ouUnder)) : null,
       },
     },
   };
 }
 
-// ---------------------------------------------------------------------------
-// Exported utilities
-// ---------------------------------------------------------------------------
-
 /**
  * Fuzzy-matches an odds data array to a specific game by team names.
- * Handles variations between EURO FOOTBALL Stats API and The Odds API team naming.
  *
- * @param {Array}  oddsData      â€” result from getGameOdds()
- * @param {string} homeTeamName  â€” home team full name from EURO FOOTBALL Stats API
- * @param {string} awayTeamName  â€” away team full name from EURO FOOTBALL Stats API
+ * @param {Array} oddsData
+ * @param {string} homeTeamName
+ * @param {string} awayTeamName
  * @returns {object|null}
  */
 export function matchOddsToGame(oddsData, homeTeamName, awayTeamName) {
-  if (!homeTeamName || !awayTeamName) return null;
+  if (!homeTeamName || !awayTeamName || !oddsData?.length) return null;
 
-  if (oddsData?.length) {
-    const words = (s) =>
-      String(s).toLowerCase().replace(/[^a-z0-9 ]/g, '').trim().split(/\s+/).filter(w => w.length > 2);
+  const words = (value) =>
+    String(value)
+      .toLowerCase()
+      .replace(/[^a-z0-9 ]/g, '')
+      .trim()
+      .split(/\s+/)
+      .filter((word) => word.length > 2);
 
-    const overlap = (a, b) => {
-      const wb = new Set(words(b));
-      return words(a).filter(w => wb.has(w)).length;
-    };
+  const overlap = (a, b) => {
+    const bWords = new Set(words(b));
+    return words(a).filter((word) => bWords.has(word)).length;
+  };
 
-    let best = null, bestScore = -1;
-    for (const event of oddsData) {
-      const score = overlap(homeTeamName, event.homeTeam) + overlap(awayTeamName, event.awayTeam);
-      if (score > bestScore) { bestScore = score; best = event; }
+  let best = null;
+  let bestScore = -1;
+
+  for (const event of oddsData) {
+    const score = overlap(homeTeamName, event.homeTeam) + overlap(awayTeamName, event.awayTeam);
+    if (score > bestScore) {
+      bestScore = score;
+      best = event;
     }
-
-    if (bestScore > 0) return best;
   }
 
-  // Fallback: return estimated mock odds during Spring Training
-  if (isSpringTraining()) {
-    console.log(`[odds-api] No real odds found for ${awayTeamName} @ ${homeTeamName} â€” using Spring Training estimated lines`);
-    return getMockOddsForGame(homeTeamName, awayTeamName);
-  }
-
-  return null;
+  return bestScore > 0 ? best : null;
 }
 
 /**
- * Converts American odds to implied probability (as a percentage).
- *   Positive: implied% = 100 / (n + 100)
- *   Negative: implied% = |n| / (|n| + 100)
+ * Converts American odds to implied probability (percentage).
  *
  * @param {number} americanOdds
- * @returns {number|null}  e.g. 56.5 for -130
+ * @returns {number|null}
  */
 export function calculateImpliedProbability(americanOdds) {
-  const n = Number(americanOdds);
-  if (!isFinite(n) || n === 0) return null;
-  const prob = n > 0
-    ? 100 / (n + 100)
-    : Math.abs(n) / (Math.abs(n) + 100);
-  return Math.round(prob * 1000) / 10; // one decimal place
+  const odds = Number(americanOdds);
+  if (!Number.isFinite(odds) || odds === 0) return null;
+
+  const probability = odds > 0
+    ? 100 / (odds + 100)
+    : Math.abs(odds) / (Math.abs(odds) + 100);
+
+  return Math.round(probability * 1000) / 10;
 }
 
 /**
- * Converts American odds to decimal format.
- *   Positive: decimal = (american / 100) + 1
- *   Negative: decimal = (100 / |american|) + 1
+ * Converts American odds to decimal.
  *
  * @param {number} americanOdds
  * @returns {number|null}
  */
 export function convertOdds(americanOdds) {
-  const n = Number(americanOdds);
-  if (!isFinite(n) || n === 0) return null;
-  return n > 0 ? (n / 100) + 1 : (100 / Math.abs(n)) + 1;
+  const odds = Number(americanOdds);
+  if (!Number.isFinite(odds) || odds === 0) return null;
+  return odds > 0 ? (odds / 100) + 1 : (100 / Math.abs(odds)) + 1;
 }
 
 /**
- * Calculates potential payout for a given stake and American odds.
- *   Positive: profit = stake Ã— (american / 100)
- *   Negative: profit = stake Ã— (100 / |american|)
+ * Calculates payout for a stake and American odds.
  *
  * @param {number} stake
  * @param {number} americanOdds
  * @returns {{ stake: number, profit: number, totalPayout: number }|null}
  */
 export function calculatePayout(stake, americanOdds) {
-  const s = Number(stake);
-  const n = Number(americanOdds);
-  if (!isFinite(s) || !isFinite(n) || s <= 0 || n === 0) return null;
+  const normalizedStake = Number(stake);
+  const odds = Number(americanOdds);
+  if (!Number.isFinite(normalizedStake) || !Number.isFinite(odds) || normalizedStake <= 0 || odds === 0) {
+    return null;
+  }
 
-  const profit = n > 0 ? s * (n / 100) : s * (100 / Math.abs(n));
+  const profit = odds > 0
+    ? normalizedStake * (odds / 100)
+    : normalizedStake * (100 / Math.abs(odds));
+
   return {
     stake,
-    profit:      Math.round(profit * 100) / 100,
-    totalPayout: Math.round((s + profit) * 100) / 100,
+    profit: Math.round(profit * 100) / 100,
+    totalPayout: Math.round((normalizedStake + profit) * 100) / 100,
   };
 }
-

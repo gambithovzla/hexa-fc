@@ -7,7 +7,7 @@ import rateLimit from 'express-rate-limit';
 import { fileURLToPath } from 'url';
 import { buildMatchContext } from './context-builder.js';
 import { analyzeGame, analyzeParlay, analyzeSafe, analyzeChat } from './oracle.js';
-import { getOdds, getGameOdds, matchOddsToGame, calculateImpliedProbability } from './odds-api.js';
+import { getGameOdds, matchOddsToGame, calculateImpliedProbability } from './odds-api.js';
 import authRouter, { bankrollRouter, seedAdminUser } from './auth.js';
 import { verifyToken } from './middleware/auth-middleware.js';
 import { runMigrations } from './migrate.js';
@@ -15,11 +15,11 @@ import pool from './db.js';
 import lemonRouter from './lemon.js';
 import picksRouter from './routes/picks.js';
 import { handleBMCWebhook } from './bmc-webhook.js';
-import { resolvePendingPicks, resolveGamePicks } from './pick-resolver.js';
+import { resolvePendingPicks } from './pick-resolver.js';
 import { captureClosingLines } from './closing-line-capture.js';
+import { parseLivePick, calculatePickProgress } from './pick-tracker.js';
 import { captureOddsSnapshot, getLineMovement } from './line-movement.js';
 import { getTodayMatches, getMatchById, SUPPORTED_LEAGUES, ODDS_API_MAP } from './soccer-api.js';
-import { buildUserLivePickProgress, getLiveMatches, runFixtureDrivenMaintenance } from './soccer-live.js';
 
 console.log('--- DEBUG ENTORNO ---');
 console.log('Ruta ejecuciÃ³n:', process.cwd());
@@ -36,93 +36,6 @@ const buildContextById = async (id) => {
   }
   return buildMatchContext(match);
 };
-
-function getMatchId(match) {
-  return match?.matchId ?? match?.fixture?.id ?? match?.gamePk ?? match?.id ?? null;
-}
-
-function normalizePickText(value) {
-  return String(value ?? '')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .trim();
-}
-
-function selectionMentions(selection, candidate) {
-  const normalizedSelection = normalizePickText(selection);
-  const normalizedCandidate = normalizePickText(candidate);
-  if (!normalizedSelection || !normalizedCandidate) return false;
-  if (normalizedSelection.includes(normalizedCandidate)) return true;
-
-  const candidateTokens = normalizedCandidate
-    .split(/[^a-z0-9]+/)
-    .filter((token) => token.length >= 3);
-
-  return candidateTokens.some((token) => normalizedSelection.includes(token));
-}
-
-function resolvePickSide(selection, matchup, odds) {
-  const normalizedSelection = normalizePickText(selection);
-  if (!normalizedSelection) return null;
-
-  if (/\b(draw|empate|tie)\b/.test(normalizedSelection)) return 'draw';
-  if (/\b(home|local)\b/.test(normalizedSelection)) return 'home';
-  if (/\b(away|visitor|visitante)\b/.test(normalizedSelection)) return 'away';
-
-  if (selectionMentions(selection, odds?.homeTeam)) return 'home';
-  if (selectionMentions(selection, odds?.awayTeam)) return 'away';
-
-  const [awayToken = '', homeToken = ''] = String(matchup ?? '').split(/\s+(?:@|vs\.?|at|-)\s+/i);
-  if (selectionMentions(selection, awayToken)) return 'away';
-  if (selectionMentions(selection, homeToken)) return 'home';
-
-  return null;
-}
-
-function resolveOddsForPick({ pick, bestPick, odds, matchup }) {
-  if (!odds?.odds) return null;
-
-  const selection = bestPick?.detail ?? pick ?? '';
-  const normalizedSelection = normalizePickText(selection);
-  const marketType = normalizePickText(bestPick?.type);
-  const { moneyline: oneXTwo, runLine: asianHandicap, overUnder } = odds.odds;
-
-  if (/^(over|o\b|mas de|alta)/.test(normalizedSelection) || marketType.includes('over')) {
-    return overUnder?.overPrice ?? null;
-  }
-
-  if (/^(under|u\b|menos de|baja)/.test(normalizedSelection) || marketType.includes('under')) {
-    return overUnder?.underPrice ?? null;
-  }
-
-  const side = resolvePickSide(selection, matchup, odds);
-  const isAsianHandicap =
-    marketType.includes('asian') ||
-    marketType.includes('handicap') ||
-    /\b(asian handicap|handicap|ah)\b/.test(normalizedSelection) ||
-    /\s[+-]\d+(\.\d+)?\b/.test(normalizedSelection);
-
-  if (isAsianHandicap) {
-    if (side === 'away') return asianHandicap?.away?.price ?? null;
-    if (side === 'home') return asianHandicap?.home?.price ?? null;
-    return null;
-  }
-
-  if (side === 'draw') return oneXTwo?.draw ?? null;
-  if (side === 'away') return oneXTwo?.away ?? null;
-  if (side === 'home') return oneXTwo?.home ?? null;
-
-  return oneXTwo?.home ?? oneXTwo?.away ?? oneXTwo?.draw ?? null;
-}
-
-function detectFootballBetBucket(pick) {
-  const normalizedPick = normalizePickText(pick);
-  if (!normalizedPick) return 'one_x_two';
-  if (/(over|under|mas de|menos de|goals|goles|o\/u)/.test(normalizedPick)) return 'over_under_goals';
-  if (/(asian handicap|handicap|ah|\s[+-]\d+(\.\d+)?)/.test(normalizedPick)) return 'asian_handicap';
-  return 'one_x_two';
-}
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url)); // eslint-disable-line no-unused-vars
 
@@ -199,8 +112,8 @@ app.post('/api/bmc/webhook', handleBMCWebhook);
 // Ã¢â€â‚¬Ã¢â€â‚¬ Credit helpers Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 const CREDIT_COSTS = {
-  single:  { fast: 1,  deep: 2, premium: 5  },
-  parlay:  { fast: 4,  deep: 8, premium: 15 },
+  single:  { fast: 1,  deep: 2  },
+  parlay:  { fast: 4,  deep: 8  },
 };
 const WEB_INTEL_COST = 3; // only applied to single-game
 
@@ -271,29 +184,17 @@ app.get('/api/matches', async (req, res) => {
   try {
     const date = req.query.date || new Date().toISOString().split('T')[0];
     const matches = await getTodayMatches(date);
-    res.json({ success: true, data: matches });
+    res.json(matches);
   } catch (err) {
     console.error('[matches] Error fetching matches:', err);
     res.status(500).json({ success: false, error: 'Failed to fetch matches' });
   }
 });
 
-// POST /api/matches/live
-app.post('/api/matches/live', async (req, res) => {
-  try {
-    const matchIds = Array.isArray(req.body?.matchIds) ? req.body.matchIds : [];
-    const liveMatches = await getLiveMatches(matchIds);
-    res.json({ success: true, data: liveMatches });
-  } catch (err) {
-    res.status(500).json({ success: false, error: safeError(err) });
-  }
-});
-
 // GET /api/odds/today
 app.get('/api/odds/today', async (req, res) => {
   try {
-    const leagueId = Number(req.query.leagueId);
-    const odds = await getOdds(Number.isFinite(leagueId) ? leagueId : null);
+    const odds = await getGameOdds();
     res.json({ success: true, data: odds });
   } catch (err) {
     res.status(500).json({ success: false, error: safeError(err) });
@@ -315,7 +216,7 @@ app.get('/api/games/:gameId/context', verifyToken, async (req, res) => {
   }
 });
 
-// POST /api/analyze/game  Ã¢â‚¬â€ requires auth, charges by selected model tier (+ Web Intel on single)
+// POST /api/analyze/game  Ã¢â‚¬â€ requires auth, costs 1 (fast) or 2 (deep) + 3 if webSearch
 app.post('/api/analyze/game', analysisLimiter, verifyToken, async (req, res) => {
   const id = req.body.gameId || req.body.matchId;
   const {
@@ -329,7 +230,7 @@ app.post('/api/analyze/game', analysisLimiter, verifyToken, async (req, res) => 
   const date         = req.body.date || new Date().toISOString().split('T')[0];
   // Input validation
   if (!id) return res.status(400).json({ success: false, error: 'matchId (or gameId) is required' });
-  if (model && !['fast', 'deep', 'premium'].includes(model)) return res.status(400).json({ success: false, error: 'Invalid model' });
+  if (model && !['fast', 'deep'].includes(model)) return res.status(400).json({ success: false, error: 'Invalid model' });
   if (date && !/^\d{4}-\d{2}-\d{2}$/.test(date)) return res.status(400).json({ success: false, error: 'Invalid date format' });
   const resolvedLang = lang ?? language;
   const cost         = calcServerCost('single', model, webSearch);
@@ -346,8 +247,13 @@ app.post('/api/analyze/game', analysisLimiter, verifyToken, async (req, res) => 
 
     if (sportKey) {
       try {
-        const allOdds = await getOdds(leagueId);
-        matchedOdds = matchOddsToGame(allOdds, match?.teams?.home?.name, match?.teams?.away?.name);
+        const allOdds = await getGameOdds(sportKey);
+        const homeTeamName = String(match?.teams?.home?.name ?? '').toLowerCase();
+
+        matchedOdds = allOdds.find((event) => {
+          const eventHomeName = String(event?.homeTeam ?? '').toLowerCase();
+          return eventHomeName.includes(homeTeamName) || homeTeamName.includes(eventHomeName);
+        }) || null;
       } catch (oddsError) {
         console.warn('[analyze/game] odds fetch failed:', oddsError?.message ?? oddsError);
       }
@@ -373,10 +279,12 @@ app.post('/api/analyze/game', analysisLimiter, verifyToken, async (req, res) => 
     let analysis;
     try {
       const matchup = `${match.teams?.away?.name ?? 'Away'} @ ${match.teams?.home?.name ?? 'Home'}`;
+      const statcastData = null;
 
       analysis = await analyzeGame({
         matchup, betType, context: prompt, riskProfile,
         mode: 'single', lang: resolvedLang, webSearch, model, timeoutMs: 90000,
+        statcastData,
         userBankroll,
         matchId: id,
       });
@@ -392,20 +300,13 @@ app.post('/api/analyze/game', analysisLimiter, verifyToken, async (req, res) => 
     }
 
     const responseData = analysis.data ? { ...analysis.data } : null;
-    res.json({
-      success: true,
-      data: responseData,
-      odds: matchedOdds ?? null,
-      parseError: analysis.parseError,
-      rawText: analysis.rawText,
-      credits: updatedUser.credits,
-    });
+    res.json({ success: true, data: responseData, parseError: analysis.parseError, rawText: analysis.rawText, credits: updatedUser.credits });
   } catch (err) {
     res.status(500).json({ success: false, error: safeError(err) });
   }
 });
 
-// POST /api/analyze/parlay  Ã¢â‚¬â€ requires auth, charges by selected model tier
+// POST /api/analyze/parlay  Ã¢â‚¬â€ requires auth, costs 4 (fast) or 8 (deep) credits
 app.post('/api/analyze/parlay', analysisLimiter, verifyToken, async (req, res) => {
   const {
     gameIds,
@@ -421,7 +322,7 @@ app.post('/api/analyze/parlay', analysisLimiter, verifyToken, async (req, res) =
   // Input validation
   if (!gameIds || !Array.isArray(gameIds) || gameIds.length === 0) return res.status(400).json({ success: false, error: 'gameIds array is required' });
   if (gameIds.length > 10) return res.status(400).json({ success: false, error: 'Maximum 10 games per parlay' });
-  if (model && !['fast', 'deep', 'premium'].includes(model)) return res.status(400).json({ success: false, error: 'Invalid model' });
+  if (model && !['fast', 'deep'].includes(model)) return res.status(400).json({ success: false, error: 'Invalid model' });
   const resolvedLang = lang ?? language;
   const cost         = calcServerCost('parlay', model, false);
 
@@ -432,7 +333,7 @@ app.post('/api/analyze/parlay', analysisLimiter, verifyToken, async (req, res) =
     try { allOdds = await getGameOdds(); } catch { /* optional */ }
 
     const legOddsArr = gameIds.map(id => {
-      const gameData = games.find(g => String(getMatchId(g)) === String(id));
+      const gameData = games.find(g => String(g.gamePk) === String(id));
       if (!gameData) return null;
       return matchOddsToGame(allOdds, gameData.teams?.home?.name, gameData.teams?.away?.name);
     });
@@ -444,7 +345,7 @@ app.post('/api/analyze/parlay', analysisLimiter, verifyToken, async (req, res) =
     try {
       const contexts = await Promise.all(
         gameIds.map(async (id, i) => {
-          const gameData = games.find(g => String(getMatchId(g)) === String(id));
+          const gameData = games.find(g => String(g.gamePk) === String(id));
           if (!gameData) throw new Error(`Partido ${id} no encontrado`);
           return buildContext(gameData, legOddsArr[i] ?? null);
         })
@@ -508,7 +409,7 @@ app.post('/api/analyze/safe', analysisLimiter, verifyToken, async (req, res) => 
     // Analyze each game individually in parallel
     const results = await Promise.allSettled(
       ids.map(async (id) => {
-        const gameData = games.find(g => String(getMatchId(g)) === String(id));
+        const gameData = games.find(g => String(g.gamePk) === String(id));
         if (!gameData) return { gameId: id, error: `Game ${id} not found` };
 
         let matchedOdds = null;
@@ -642,7 +543,7 @@ app.post('/api/analyze/batch', analysisLimiter, verifyToken, isAdmin, async (req
     // Build context for each game
     const gameContexts = await Promise.all(
       gameIds.map(async (id) => {
-        const gameData = games.find(g => String(getMatchId(g)) === String(id));
+        const gameData = games.find(g => String(g.gamePk) === String(id));
         if (!gameData) return { id, error: `Game ${id} not found` };
 
         let matchedOdds = null;
@@ -742,12 +643,7 @@ app.post('/api/analyze/batch', analysisLimiter, verifyToken, isAdmin, async (req
           const mp = d.master_prediction ?? d.safe_pick ?? {};
           const bp = d.best_pick ?? {};
 
-          const oddsAtPick = resolveOddsForPick({
-            pick: mp.pick ?? bp.detail ?? null,
-            bestPick: bp,
-            odds: value.odds,
-            matchup: value.matchup,
-          });
+          const oddsAtPick = value.odds?.moneyline?.home ?? value.odds?.moneyline?.away ?? null;
           const impliedProbAtPick = oddsAtPick != null
             ? (oddsAtPick < 0
                 ? Math.abs(oddsAtPick) / (Math.abs(oddsAtPick) + 100)
@@ -824,13 +720,13 @@ app.post('/api/analyze/chat', analysisLimiter, verifyToken, isAdmin, async (req,
   try {
     const resolvedDate = date || new Date().toISOString().split('T')[0];
     let games    = await getTodayMatches(resolvedDate);
-    let gameData = games.find(g => String(getMatchId(g)) === String(gameId));
+    let gameData = games.find(g => String(g.gamePk) === String(gameId));
 
     if (!gameData) {
       const todayStr = new Date().toISOString().split('T')[0];
       if (todayStr !== resolvedDate) {
         const retryGames = await getTodayMatches(todayStr);
-        gameData = retryGames.find(g => String(getMatchId(g)) === String(gameId));
+        gameData = retryGames.find(g => String(g.gamePk) === String(gameId));
         if (gameData) games = retryGames;
       }
     }
@@ -868,14 +764,9 @@ app.get('/api/auth/is-admin', verifyToken, (req, res) => {
   res.json({ isAdmin: req.user.email === 'cdanielrr@hotmail.com' });
 });
 
-// POST /api/picks/live-progress
-app.post('/api/picks/live-progress', verifyToken, async (req, res) => {
-  try {
-    const progress = await buildUserLivePickProgress(req.user.id);
-    res.json({ success: true, data: progress });
-  } catch (err) {
-    res.status(500).json({ success: false, error: safeError(err) });
-  }
+// POST /api/picks/live-progress - Temporary stub during football migration
+app.post('/api/picks/live-progress', verifyToken, async (_req, res) => {
+  res.json({ success: true, data: [] });
 });
 
 // GET /api/picks/resolve Ã¢â‚¬â€ manually trigger pick resolution (admin/testing)
@@ -888,23 +779,9 @@ app.get('/api/picks/resolve', verifyToken, async (_req, res) => {
   }
 });
 
-// POST /api/picks/resolve-game
-app.post('/api/picks/resolve-game', verifyToken, async (req, res) => {
-  const matchId = req.body?.matchId ?? req.body?.gamePk;
-  if (!matchId) {
-    return res.status(400).json({ success: false, error: 'matchId (or gamePk) is required' });
-  }
-
-  try {
-    const summary = await resolveGamePicks(matchId);
-    if (summary?.error) {
-      return res.status(404).json({ success: false, error: summary.error });
-    }
-
-    res.json({ success: true, data: summary });
-  } catch (err) {
-    res.status(500).json({ success: false, error: safeError(err) });
-  }
+// POST /api/picks/resolve-game - Temporary stub during football migration
+app.post('/api/picks/resolve-game', verifyToken, async (_req, res) => {
+  res.status(501).json({ success: false, error: 'resolve-game is temporarily unavailable during football migration' });
 });
 
 // POST /api/picks - guarda un pick en el historial
@@ -917,28 +794,9 @@ app.post('/api/picks', verifyToken, async (req, res) => {
       odds_at_pick, odds_details, kelly_recommendation,
     } = req.body;
 
-    const parsedOddsDetails = (() => {
-      if (odds_details == null) return null;
-      if (typeof odds_details === 'string') {
-        try {
-          return JSON.parse(odds_details);
-        } catch {
-          return null;
-        }
-      }
-      return odds_details;
-    })();
-
-    const resolvedOddsAtPick = odds_at_pick ?? resolveOddsForPick({
-      pick,
-      bestPick: best_pick,
-      odds: parsedOddsDetails ? { odds: parsedOddsDetails, ...parsedOddsDetails } : null,
-      matchup,
-    });
-
     // Calculate implied probability server-side from the American odds provided by the client
-    const implied_prob_at_pick = resolvedOddsAtPick != null
-      ? calculateImpliedProbability(resolvedOddsAtPick)
+    const implied_prob_at_pick = odds_at_pick != null
+      ? calculateImpliedProbability(odds_at_pick)
       : null;
 
     const { rows } = await pool.query(
@@ -953,9 +811,9 @@ app.post('/api/picks', verifyToken, async (req, res) => {
         oracle_report, hexa_hunch,
         JSON.stringify(alert_flags ?? []), JSON.stringify(probability_model ?? {}),
         JSON.stringify(best_pick ?? {}), model, language,
-        resolvedOddsAtPick ?? null,
+        odds_at_pick ?? null,
         implied_prob_at_pick,
-        parsedOddsDetails != null ? JSON.stringify(parsedOddsDetails) : null,
+        odds_details != null ? JSON.stringify(odds_details) : null,
         kelly_recommendation ?? null,
       ]
     );
@@ -995,11 +853,7 @@ app.get('/api/picks/clv-stats', verifyToken, async (req, res) => {
     `, [userId]);
 
     // Group by bet type (parsed from pick string in JS to avoid SQL regex complexity)
-    const betTypeMap = {
-      one_x_two: { count: 0, totalCLV: 0 },
-      asian_handicap: { count: 0, totalCLV: 0 },
-      over_under_goals: { count: 0, totalCLV: 0 },
-    };
+    const betTypeMap = { moneyline: { count: 0, totalCLV: 0 }, runline: { count: 0, totalCLV: 0 }, over_under: { count: 0, totalCLV: 0 } };
     const modelMap   = {};
 
     const { rows: allWithCLV } = await pool.query(`
@@ -1008,7 +862,9 @@ app.get('/api/picks/clv-stats', verifyToken, async (req, res) => {
 
     for (const row of allWithCLV) {
       const p = (row.pick ?? '').toLowerCase();
-      const betType = detectFootballBetBucket(p);
+      let betType = 'moneyline';
+      if (/over|under|m[aÃƒÂ¡]s\s+de|menos\s+de|alta|baja/i.test(p)) betType = 'over_under';
+      else if (/run\s+line|rl|l[iÃƒÂ­]nea\s+de\s+carrera/i.test(p)) betType = 'runline';
 
       betTypeMap[betType].count++;
       betTypeMap[betType].totalCLV += parseFloat(row.clv);
@@ -1142,18 +998,61 @@ runMigrations()
   .then(() => {
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`Hexa-v4 server running on http://0.0.0.0:${PORT}`);
-      const runMaintenance = () => runFixtureDrivenMaintenance({
-        captureOddsSnapshot,
-        captureClosingLines,
-        resolvePendingPicks,
-      }).catch((err) => {
-        console.error('[scheduler] Fixture-driven maintenance failed:', err.message);
-      });
 
-      runMaintenance();
+      // Ã¢â€â‚¬Ã¢â€â‚¬ Line movement snapshot: every 6 hours between 9amÃ¢â‚¬â€œ7pm ET Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+      const SIX_HOURS_LM = 6 * 60 * 60 * 1000;
+      setInterval(() => {
+        const etHour = parseInt(
+          new Intl.DateTimeFormat('en-US', {
+            hour: 'numeric', hour12: false, timeZone: 'America/New_York',
+          }).format(new Date()),
+          10
+        );
+        // Window: 09:00Ã¢â‚¬â€œ18:59 ET (lines open in the morning, games start ~18:00+)
+        if (etHour >= 9 && etHour < 19) {
+          console.log(`[line-movement] Scheduled snapshot triggered (ET hour: ${etHour})`);
+          captureOddsSnapshot().catch(err => {
+            console.error('[line-movement] Scheduled snapshot failed:', err.message);
+          });
+        }
+      }, SIX_HOURS_LM).unref();
 
-      const FIFTEEN_MINUTES = 15 * 60 * 1000;
-      setInterval(runMaintenance, FIFTEEN_MINUTES).unref();
+      // Ã¢â€â‚¬Ã¢â€â‚¬ Pick resolver: every 30 min between 7pmÃ¢â‚¬â€œ6am ET Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+      const THIRTY_MIN = 30 * 60 * 1000;
+      setInterval(() => {
+        // Get current hour in US Eastern Time (handles EDT/EST automatically)
+        const etHour = parseInt(
+          new Intl.DateTimeFormat('en-US', {
+            hour: 'numeric', hour12: false, timeZone: 'America/New_York',
+          }).format(new Date()),
+          10
+        );
+        // Window: 19:00Ã¢â‚¬â€œ05:59 ET (west coast games finish ~7pm ET; extras/rain delays can run past 3am)
+        if (etHour >= 19 || etHour < 6) {
+          console.log(`[pick-resolver] Scheduled run triggered (ET hour: ${etHour})`);
+          resolvePendingPicks().catch(err => {
+            console.error('[pick-resolver] Scheduled run failed:', err.message);
+          });
+        }
+      }, THIRTY_MIN).unref();
+
+      // Ã¢â€â‚¬Ã¢â€â‚¬ Closing line capture: every 2 hours between 5pmÃ¢â‚¬â€œ1am ET Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+      const TWO_HOURS = 2 * 60 * 60 * 1000;
+      setInterval(() => {
+        const etHour = parseInt(
+          new Intl.DateTimeFormat('en-US', {
+            hour: 'numeric', hour12: false, timeZone: 'America/New_York',
+          }).format(new Date()),
+          10
+        );
+        // Closing line capture: 17:00Ã¢â‚¬â€œ00:59 ET (before and during EURO FOOTBALL game windows)
+        if (etHour >= 17 || etHour < 1) {
+          console.log(`[closing-line] Scheduled capture triggered (ET hour: ${etHour})`);
+          captureClosingLines().catch(err => {
+            console.error('[closing-line] Scheduled capture failed:', err.message);
+          });
+        }
+      }, TWO_HOURS).unref();
     });
   })
   .catch(err => {

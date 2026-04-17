@@ -1,6 +1,6 @@
 /**
  * Header.jsx
- * Fixed top bar for H.E.X.A. V4 — logo, subtitle, language toggle, and tab bar.
+ * Fixed top bar for H.E.X.A. F.C. — logo, subtitle, language toggle, and tab bar.
  *
  * Props:
  *   lang        — 'en' | 'es'
@@ -9,7 +9,7 @@
  *   onTabChange — (tab) => void
  */
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Box, Typography } from '@mui/material';
 import LanguageToggle from './LanguageToggle';
 import AuthModal from './AuthModal';
@@ -20,15 +20,13 @@ import TerminalGuide from './TerminalGuide';
 import { useAuth } from '../store/authStore';
 import { C, BARLOW, MONO } from '../theme';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-
 const SUBTITLE = {
   en: 'The EURO FOOTBALL Sports Oracle',
   es: 'El Oráculo EURO FOOTBALL',
 };
 
 const TABS = [
-  { value: 'game',    en: 'Single Game', es: 'Juego Individual' },
+  { value: 'game',    en: 'Single Match', es: 'Partido Individual' },
   { value: 'parlay',  en: 'Parlay',      es: 'Parlay'           },
   { value: 'bankroll', en: 'Bankroll',    es: 'Bankroll'         },
   { value: 'history', en: 'History',     es: 'Historial'        },
@@ -36,9 +34,12 @@ const TABS = [
   { value: 'batch',   en: 'Batch Scan',  es: 'Batch Scan', adminOnly: true },
 ];
 
-// ── Statcast badge ────────────────────────────────────────────────────────────
+// ── Legacy data badge (disabled in football flow) ────────────────────────────
 
-function StatcastBadge({ lang }) {
+function LegacyDataStatusBadge({ lang }) {
+  void lang;
+  return null;
+
   const [status, setStatus]   = useState(null);
   const [hovered, setHovered] = useState(false);
   const [spinning, setSpinning] = useState(false);
@@ -47,7 +48,7 @@ function StatcastBadge({ lang }) {
 
   async function fetchStatus() {
     try {
-      const res = await fetch(`${API_URL}/api/savant/status`);
+      const res = await fetch(`${API_URL}/api/unused/status`);
       if (!res.ok) return;
       const json = await res.json();
       if (json.success) setStatus(json.data);
@@ -62,7 +63,7 @@ function StatcastBadge({ lang }) {
     setSpinning(true);
     try {
       const token = localStorage.getItem('hexa_token');
-      const res = await fetch(`${API_URL}/api/savant/refresh`, {
+      const res = await fetch(`${API_URL}/api/unused/refresh`, {
         method: 'POST',
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
@@ -101,8 +102,8 @@ function StatcastBadge({ lang }) {
 
   const dotColor = hasData ? '#00E676' : '#FF3D57';
   const statusLabel = hasData
-    ? (isEs ? 'STATCAST EN VIVO' : 'STATCAST LIVE')
-    : (isEs ? 'STATCAST OFFLINE' : 'STATCAST OFFLINE');
+    ? (isEs ? 'DATOS EN VIVO' : 'DATA LIVE')
+    : (isEs ? 'DATOS OFFLINE' : 'DATA OFFLINE');
 
   return (
     <Box
@@ -163,7 +164,7 @@ function StatcastBadge({ lang }) {
           ...(spinning && { animation: 'spin 0.8s linear infinite' }),
           '&:hover': { opacity: hovered ? 1 : 0 },
         }}
-        title={isEs ? 'Actualizar Statcast' : 'Refresh Statcast'}
+        title={isEs ? 'Actualizar datos' : 'Refresh data'}
       >
         🔄
       </Box>
@@ -521,9 +522,6 @@ export default function Header({ lang = 'en', onLangToggle, activeTab, onTabChan
             }}
           />
         </Box>
-
-        {/* Statcast status badge */}
-        <StatcastBadge lang={lang} />
 
         {/* Auth button / user pill */}
         <AuthButton lang={lang} />

@@ -14,7 +14,7 @@ import { getGameOdds } from './odds-api.js';
 // ---------------------------------------------------------------------------
 
 /**
- * Fetches current EURO FOOTBALL odds and stores a snapshot for every real game (non-mock).
+ * Fetches current football odds and stores a snapshot for every matched game.
  * Safe to call multiple times â€” each call inserts a new timestamped row.
  *
  * @returns {Promise<{ captured: number, games: string[] }>}
@@ -22,10 +22,7 @@ import { getGameOdds } from './odds-api.js';
 export async function captureOddsSnapshot() {
   const allOdds = await getGameOdds();
 
-  // Filter out Spring Training mock data
-  const realOdds = allOdds.filter(g => g.source !== 'estimated_spring_training');
-
-  if (!realOdds.length) {
+  if (!allOdds.length) {
     console.log('[line-movement] No real-odds games available â€” snapshot skipped');
     return { captured: 0, games: [] };
   }
@@ -33,7 +30,7 @@ export async function captureOddsSnapshot() {
   const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
   const captured = [];
 
-  for (const game of realOdds) {
+  for (const game of allOdds) {
     const { homeTeam, awayTeam, odds } = game;
     const { moneyline: ml, runLine: rl, overUnder: ou } = odds;
 
@@ -43,17 +40,18 @@ export async function captureOddsSnapshot() {
     await pool.query(
       `INSERT INTO odds_snapshots
          (game_id, game_date, home_team, away_team,
-          moneyline_home, moneyline_away,
+          moneyline_home, moneyline_draw, moneyline_away,
           run_line_home, run_line_home_price,
           run_line_away, run_line_away_price,
           total, over_price, under_price)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`,
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
       [
         gameId,
         today,
         homeTeam,
         awayTeam,
         ml?.home   ?? null,
+        ml?.draw   ?? null,
         ml?.away   ?? null,
         rl?.home?.spread ?? null,
         rl?.home?.price  ?? null,
@@ -110,6 +108,7 @@ export async function getLineMovement(homeTeam, awayTeam, gameDate) {
   const diff = (a, b) => (a != null && b != null ? b - a : null);
 
   const movement_ml_home = diff(opening.moneyline_home, current.moneyline_home);
+  const movement_ml_draw = diff(opening.moneyline_draw, current.moneyline_draw);
   const movement_ml_away = diff(opening.moneyline_away, current.moneyline_away);
   const movement_total   = diff(parseFloat(opening.total), parseFloat(current.total));
 
@@ -135,15 +134,18 @@ export async function getLineMovement(homeTeam, awayTeam, gameDate) {
   return {
     opening: {
       moneyline_home: opening.moneyline_home,
+      moneyline_draw: opening.moneyline_draw,
       moneyline_away: opening.moneyline_away,
       total:          opening.total != null ? parseFloat(opening.total) : null,
     },
     current: {
       moneyline_home: current.moneyline_home,
+      moneyline_draw: current.moneyline_draw,
       moneyline_away: current.moneyline_away,
       total:          current.total != null ? parseFloat(current.total) : null,
     },
     movement_ml_home,
+    movement_ml_draw,
     movement_ml_away,
     movement_total: movement_total != null ? Math.round(movement_total * 10) / 10 : null,
     sharp_signal,

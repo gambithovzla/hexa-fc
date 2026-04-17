@@ -1,5 +1,6 @@
 /**
- * pick-tracker.js — Live Pick Progress Tracker for H.E.X.A. V4
+ * pick-tracker.js — LEGACY live pick progress tracker.
+ * Not used by the active football flow in server/index.js.
  *
  * Matches pending Oracle picks against live boxscore data to calculate
  * real-time progress on props and game bets.

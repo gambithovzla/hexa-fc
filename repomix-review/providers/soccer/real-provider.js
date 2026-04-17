@@ -188,15 +188,6 @@ async function fetchFixtureStatistics(fixtureId) {
   return response?.data?.response ?? [];
 }
 
-async function fetchFixtureEvents(fixtureId) {
-  const response = await requestWithRetry(
-    '/fixtures/events',
-    { fixture: fixtureId },
-    `fixture events fixture=${fixtureId}`,
-  );
-  return response?.data?.response ?? [];
-}
-
 async function fetchRecentFixtureStatisticsBestEffort(recentFixtures) {
   const statisticsByFixture = [];
 
@@ -265,49 +256,6 @@ const realSoccerProvider = createSoccerProvider({
     const resolvedDate = resolveDate(dateStr);
     const matches = await getTodayMatches(resolvedDate);
     return matches.find((match) => String(match.matchId ?? match.fixture?.id) === String(matchId)) || null;
-  },
-
-  async getMatchEvents(fixtureId) {
-    try {
-      const rawEvents = await fetchFixtureEvents(fixtureId);
-      return rawEvents.map((event, index) => {
-        const minuteRaw = event?.time?.elapsed;
-        const addedRaw = event?.time?.extra;
-        const minute = minuteRaw == null ? null : Number(minuteRaw);
-        const added = addedRaw == null ? null : Number(addedRaw);
-        const detail = String(event?.detail ?? '').trim();
-        const playerName = String(event?.player?.name ?? '').trim();
-        const assistName = String(event?.assist?.name ?? '').trim();
-        const teamName = String(event?.team?.name ?? '').trim();
-
-        const summaryParts = [
-          Number.isFinite(minute) ? `${minute}${Number.isFinite(added) ? `+${added}` : ''}'` : null,
-          teamName || null,
-          playerName || null,
-          detail || event?.type || null,
-          assistName ? `assist ${assistName}` : null,
-        ].filter(Boolean);
-
-        return {
-          id: `${fixtureId}:${minute || 'x'}:${index}`,
-          minute: Number.isFinite(minute) ? minute : null,
-          added: Number.isFinite(added) ? added : null,
-          type: event?.type ?? null,
-          detail: detail || event?.type || null,
-          player: playerName || null,
-          assist: assistName || null,
-          team: {
-            id: event?.team?.id ?? null,
-            name: teamName || null,
-            logo: event?.team?.logo ?? null,
-          },
-          summary: summaryParts.join(' | '),
-        };
-      });
-    } catch (error) {
-      console.warn(`[soccer-provider:real] getMatchEvents fallback for ${fixtureId}: ${error?.message ?? error}`);
-      return [];
-    }
   },
 
   async getMatchLineups(fixtureId) {

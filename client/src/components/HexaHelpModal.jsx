@@ -103,16 +103,16 @@ function TabModes({ lang }) {
       title: 'SAFE PICK',
       cost: isEs ? '2 crÃ©ditos (siempre Deep)' : '2 credits (always Deep)',
       description: isEs
-        ? 'H.E.X.A. evalÃºa TODOS los tipos de apuesta (Moneyline, Run Line, Over/Under, Props) y entrega el pick con mayor probabilidad de acierto. Sin importar edge ni value.'
-        : 'H.E.X.A. evaluates ALL bet types (Moneyline, Run Line, Over/Under, Props) and delivers the pick with the highest probability of hitting. Ignores edge and value.',
+        ? 'H.E.X.A. evalÃºa los mercados activos de fÃºtbol (1X2, Asian Handicap y Over/Under Goals) y entrega el pick con mayor probabilidad de acierto.'
+        : 'H.E.X.A. evaluates the active football markets (1X2, Asian Handicap, and Over/Under Goals) and returns the pick with the highest hit probability.',
     },
     {
       icon: 'ðŸ§ ',
       title: 'SINGLE DEEP',
       cost: isEs ? '2 crÃ©ditos' : '2 credits',
       description: isEs
-        ? 'AnÃ¡lisis profundo con razonamiento detallado. Examina matchups de pitchers, tendencias ofensivas, bullpen, factores de estadio y mÃ¡s. ~30 segundos.'
-        : 'Deep analysis with detailed reasoning. Examines pitcher matchups, offensive trends, bullpen, park factors and more. ~30 seconds.',
+        ? 'AnÃ¡lisis profundo con razonamiento detallado. Examina xG, tiros, forma reciente, local/visitante, goles a favor/en contra y contexto de mercado. ~30 segundos.'
+        : 'Deep analysis with detailed reasoning. Examines xG, shots, recent form, home/away splits, goals for/against, and market context. ~30 seconds.',
     },
     {
       icon: 'âœ¨',
@@ -143,8 +143,8 @@ function TabModes({ lang }) {
       title: 'WEB INTEL',
       cost: isEs ? '+3 crÃ©ditos (Solo Single)' : '+3 credits (Single only)',
       description: isEs
-        ? 'AÃ±ade bÃºsqueda en tiempo real: lesiones confirmadas, clima, noticias de Ãºltimo momento y alineaciones del dÃ­a. Solo disponible en modo Single Game.'
-        : 'Adds real-time search: confirmed injuries, weather, breaking news and daily lineups. Only available in Single Game mode.',
+        ? 'AÃ±ade bÃºsqueda en tiempo real: lesiones confirmadas, clima, noticias de Ãºltimo momento y alineaciones del dÃ­a. Solo disponible en modo Single Match.'
+        : 'Adds real-time search: confirmed injuries, weather, breaking news and daily lineups. Only available in Single Match mode.',
     },
   ];
 
@@ -219,17 +219,17 @@ function TabOracle({ lang }) {
   const sources = [
     {
       icon: 'ðŸ“Š',
-      title: 'Baseball Savant (Statcast)',
+      title: 'Football Match Data',
       description: isEs
-        ? 'xwOBA, Exit Velocity, Whiff%, Barrel%, Sprint Speed y mÃ¡s de 16 leaderboards actualizados diariamente.'
-        : 'xwOBA, Exit Velocity, Whiff%, Barrel%, Sprint Speed and 16+ leaderboards updated daily.',
+        ? 'xG, xGA, tiros, tiros al arco, forma reciente, splits local/visitante y estado del partido.'
+        : 'xG, xGA, shots, shots on target, recent form, home/away splits, and live match state.',
     },
     {
       icon: 'âš¾',
       title: 'EURO FOOTBALL Stats API',
       description: isEs
-        ? 'EstadÃ­sticas de pitchers, ofensiva de equipos, alineaciones confirmadas y datos histÃ³ricos.'
-        : 'Pitcher statistics, team offense, confirmed lineups and historical data.',
+        ? 'EstadÃ­sticas de equipos, alineaciones confirmadas, resultados recientes y datos histÃ³ricos.'
+        : 'Team statistics, confirmed lineups, recent results, and historical data.',
     },
     {
       icon: 'ðŸŽ°',

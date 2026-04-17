@@ -263,6 +263,15 @@ function capitalize(s) {
   return s ? s.charAt(0).toUpperCase() + s.slice(1) : '—';
 }
 
+function formatBetTypeLabel(type) {
+  const labels = {
+    one_x_two: '1X2',
+    asian_handicap: 'Asian Handicap',
+    over_under_goals: 'Over/Under Goals',
+  };
+  return labels[type] ?? capitalize(type);
+}
+
 function signedPct(n) {
   return `${n >= 0 ? '+' : ''}${n.toFixed(1)}%`;
 }
@@ -307,7 +316,7 @@ export default function PerformanceDashboard({ onBack }) {
 
   const byTypeRows = data
     ? Object.entries(data.breakdown?.byType ?? {}).map(([type, s]) => [
-        capitalize(type),
+        formatBetTypeLabel(type),
         String(s.wins),
         String(s.losses),
         `${s.winRate.toFixed(1)}%`,
