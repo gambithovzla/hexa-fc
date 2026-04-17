@@ -1,6 +1,6 @@
 ﻿/**
  * server/oracle.js
- * Llama a la API de Claude con el system prompt H.E.X.A. V4.
+ * Llama a la API de Claude con el prompt activo de H.E.X.A. F.C.
  *
  * Exporta:
  *   analyzeGame(params)                            â€” funciÃ³n principal (todos los modos)
@@ -22,13 +22,13 @@ const anthropic = new Anthropic({
 });
 
 const MODELS = {
+  fast:    { id: 'claude-sonnet-4-6',  maxTokens: 5000  },
   deep:    { id: 'claude-sonnet-4-6',  maxTokens: 8000  },
   premium: { id: 'claude-opus-4-5',    maxTokens: 10000 },
 };
 
 // ---------------------------------------------------------------------------
-// System prompt H.E.X.A. V4
-// TODO: pega aquÃ­ el system prompt completo de H.E.X.A. V4
+// System prompt H.E.X.A. F.C.
 // ---------------------------------------------------------------------------
 
 const SYSTEM_PROMPT = `You are H.E.X.A. F.C., an expert European football betting analyst. Football only. Use only football signals and football market logic.
@@ -44,7 +44,7 @@ Priority order:
 Rules:
 - Compare the teams directly. Do not describe them separately.
 - Find the real edge, not a narrative.
-- Pick the single best bet only from 1X2, Asian Handicap, or Over/Under.
+- Pick the single best bet only from 1X2, Draw No Bet, Asian Handicap, Over/Under, or BTTS.
 - Never invent data. If data is missing, say so and raise model_risk.
 - Do not repeat raw numbers without explaining what they mean.
 
@@ -60,7 +60,7 @@ oracle_report must be one plain-text line with these labeled sections separated 
 Match Reading: ...; Tactical Edge: ...; Risk Factors: ...; Best Bet: ...; Confidence Score: ...; Model Risk: ...
 
 Keep the existing JSON contract:
-{"master_prediction":{"pick":"string","oracle_confidence":"number 0-100","bet_value":"HIGH VALUE | MODERATE VALUE | MARGINAL VALUE"},"oracle_report":"string","hexa_hunch":"string","alert_flags":["string"],"probability_model":{"home_wins":"number out of 10000","away_wins":"number out of 10000"},"best_pick":{"type":"1X2 | Asian Handicap | Over-Under","detail":"exact pick","confidence":"number 0-1 and exactly oracle_confidence divided by 100"},"model_risk":"low | medium | high","kelly_recommendation":"string only when bankroll exists"}
+{"master_prediction":{"pick":"string","oracle_confidence":"number 0-100","bet_value":"HIGH VALUE | MODERATE VALUE | MARGINAL VALUE"},"oracle_report":"string","hexa_hunch":"string","alert_flags":["string"],"probability_model":{"home_wins":"number out of 10000","draws":"number out of 10000 optional","away_wins":"number out of 10000"},"best_pick":{"type":"1X2 | Draw No Bet | Asian Handicap | Over-Under | BTTS","detail":"exact pick","confidence":"number 0-1 and exactly oracle_confidence divided by 100"},"model_risk":"low | medium | high","kelly_recommendation":"string only when bankroll exists"}
 
 Kelly:
 - If USER BANKROLL exists, compute conservative Kelly from the selected market side and include kelly_recommendation.
@@ -99,8 +99,10 @@ const SAFE_PICK_PROMPT = `You are H.E.X.A. F.C. Safe Pick Mode, a high-probabili
 
 Your only task is to find the single safest bet among:
 - 1X2
+- Draw No Bet
 - Asian Handicap
 - Over/Under
+- BTTS
 
 Rules:
 - Football only.
@@ -111,7 +113,7 @@ Rules:
 
 Output format:
 Respond only with valid JSON. No markdown. No backticks. No preamble.
-{"safe_pick":{"pick":"string","type":"1X2 | Asian Handicap | OverUnder","hit_probability":"number 0-100","reasoning":"string plain text under 300 chars"},"alternatives":[{"pick":"string","type":"string","hit_probability":"number 0-100","reasoning":"string under 150 chars"}],"game_overview":"string plain text under 200 chars","alert_flags":["string array with data quality warnings if any"],"model_risk":"low | medium | high"}
+{"safe_pick":{"pick":"string","type":"1X2 | Draw No Bet | Asian Handicap | OverUnder | BTTS","hit_probability":"number 0-100","reasoning":"string plain text under 300 chars"},"alternatives":[{"pick":"string","type":"string","hit_probability":"number 0-100","reasoning":"string under 150 chars"}],"game_overview":"string plain text under 200 chars","alert_flags":["string array with data quality warnings if any"],"model_risk":"low | medium | high"}
 
 Output rules:
 - All text values must be plain text and single line.
@@ -139,6 +141,7 @@ Output rules:
 function buildUserMessage({ matchup, betType, context, riskProfile, mode, lang, games = [], legs, userBankroll }) {
   const normalizedBetType = (() => {
     switch (String(betType ?? '').toLowerCase()) {
+      case '1x2':
       case 'moneyline':
       case 'ml':
         return '1X2';
@@ -147,10 +150,18 @@ function buildUserMessage({ matchup, betType, context, riskProfile, mode, lang, 
       case 'asian_handicap':
       case 'asian handicap':
         return 'Asian Handicap';
+      case 'dnb':
+      case 'draw_no_bet':
+      case 'draw no bet':
+        return 'Draw No Bet';
+      case 'btts':
+      case 'both teams to score':
+        return 'BTTS';
       case 'totals':
       case 'total':
       case 'over_under':
       case 'over-under':
+      case 'over/under':
         return 'Over-Under';
       default:
         return betType?.toUpperCase?.() ?? betType;
@@ -165,7 +176,7 @@ function buildUserMessage({ matchup, betType, context, riskProfile, mode, lang, 
     case 'single': {
       const betInstruction = betType && betType !== 'all' && betType !== 'general'
         ? `MANDATORY BET TYPE: You MUST deliver your pick as a ${normalizedBetType} bet. Do not switch to a different market. Analyze that market specifically and deliver the best pick within it.`
-        : `Bet focus: all types â€” select the highest-value bet type based on the data.`;
+        : `Bet focus: all supported football markets â€” select the highest-value bet type based on the data, including 1X2, Draw No Bet, Asian Handicap, Over/Under, and BTTS when justified.`;
       const bankrollLine = userBankroll != null
         ? `\nUSER BANKROLL: $${userBankroll.toFixed(2)} â€” You MUST compute the Kelly stake and include kelly_recommendation in your JSON output.`
         : '';
@@ -191,7 +202,7 @@ function buildUserMessage({ matchup, betType, context, riskProfile, mode, lang, 
       const numLegs = legs ?? games.length;
       const parlayBetInstruction = betType && betType !== 'all' && betType !== 'general'
         ? `MANDATORY BET TYPE: Every leg MUST be a ${normalizedBetType} bet. Do not mix in other markets. Build each leg within that market specifically.`
-        : `Bet focus: all types â€” select the highest-value bet type per leg based on the data.`;
+        : `Bet focus: all supported football markets â€” select the highest-value bet type per leg based on the data, including 1X2, Draw No Bet, Asian Handicap, Over/Under, and BTTS when justified.`;
       return (
         `Build ${numLegs}-leg parlay from:\n` +
         `${games.join('\n')}\n` +
@@ -341,8 +352,8 @@ function parseResponse(raw) {
  * Analiza un partido, parlay o jornada completa vÃ­a la API de Claude.
  *
  * @param {object}   params
- * @param {string}   params.matchup         â€” "NYY @ BOS" (modo single)
- * @param {string}   [params.betType]       â€” "moneyline" | "totals" | "runline" | â€¦
+ * @param {string}   params.matchup         â€” "Away Team @ Home Team" (modo single)
+ * @param {string}   [params.betType]       â€” "1x2" | "asian_handicap" | "over_under" | legacy aliases
  * @param {string}   params.context         â€” string de buildContext()
  * @param {string}   [params.riskProfile]   â€” "low" | "medium" | "high"  (def. "medium")
  * @param {string}   [params.mode]          â€” "single" | "fullDay" | "parlay" (def. "single")
@@ -350,7 +361,7 @@ function parseResponse(raw) {
  * @param {boolean}  [params.webSearch]     â€” incluir tool web_search (def. false)
  * @param {string[]} [params.games]         â€” lista de matchups para fullDay/parlay
  * @param {number}   [params.legs]          â€” nÃºmero de patas del parlay
- * @param {string}   [params.model]         â€” "fast" (Haiku) | "deep" (Sonnet)  (def. "fast")
+ * @param {string}   [params.model]         â€” "fast" | "deep" | "premium"  (def. "fast")
  * @param {number}   [params.timeoutMs]     â€” abort oracle call after this many ms; throws Error('TIMEOUT')
  *
  * @returns {Promise<{
@@ -453,7 +464,6 @@ You are running in PREMIUM mode. The user paid extra for deeper football analysi
     parseError,
     stopReason:    message.stop_reason,
     usage:         message.usage,
-    xgboostResult: null,
   };
 }
 
@@ -520,8 +530,8 @@ export async function analyzeSafe({ contextString, lang = 'en' }) {
   const modelConfig = MODELS.deep; // Safe Pick always uses Sonnet
 
   const userMessage = lang === 'es'
-    ? `Analiza este partido y dame el PICK MÁS SEGURO. Evalúa 1X2, Asian Handicap y Over/Under. Elige solo el más sólido.\n\nDatos:\n${contextString}`
-    : `Analyze this game and give me the SAFEST PICK. Evaluate 1X2, Asian Handicap, and Over/Under. Choose only the safest option.\n\nData:\n${contextString}`;
+    ? `Analiza este partido y dame el PICK MÁS SEGURO. Evalúa 1X2, Draw No Bet, Asian Handicap, Over/Under y BTTS. Elige solo el más sólido.\n\nDatos:\n${contextString}`
+    : `Analyze this game and give me the SAFEST PICK. Evaluate 1X2, Draw No Bet, Asian Handicap, Over/Under, and BTTS. Choose only the safest option.\n\nData:\n${contextString}`;
 
   const response = await anthropic.messages.create({
     model:      modelConfig.id,

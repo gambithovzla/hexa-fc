@@ -1,7 +1,6 @@
 const REQUIRED_PROVIDER_METHODS = [
   'getTodayMatches',
   'getMatchById',
-  'getMatchEvents',
   'getMatchLineups',
   'getTeamStats',
 ];
@@ -10,7 +9,6 @@ const REQUIRED_PROVIDER_METHODS = [
  * @typedef {Object} SoccerProvider
  * @property {(dateStr?: string) => Promise<Array>} getTodayMatches Returns matches for a given date.
  * @property {(matchId: string | number, dateStr?: string) => Promise<Object | null>} getMatchById Returns one match or null.
- * @property {(fixtureId: string | number) => Promise<Array>} getMatchEvents Returns normalized event timeline data for a fixture.
  * @property {(fixtureId: string | number) => Promise<Array>} getMatchLineups Returns lineup data for a fixture.
  * @property {(teamId: string | number, leagueId: string | number, season: string | number) => Promise<Object>} getTeamStats Returns team stats for a competition context.
  */

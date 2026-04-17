@@ -10,10 +10,10 @@ import { Box, Typography } from '@mui/material';
 import { C, BARLOW, MONO } from '../theme';
 
 const MESSAGES_ES = [
-  'Consultando Statcast...',
+  'Consultando métricas del partido...',
   'Analizando tendencias históricas...',
-  'Cruzando datos de pitcheo...',
-  'Evaluando métricas ofensivas...',
+  'Cruzando señales de xG y volumen...',
+  'Evaluando métricas ofensivas y defensivas...',
   'Calculando probabilidades...',
   'El Oráculo está procesando...',
   'Verificando alineaciones...',
@@ -21,10 +21,10 @@ const MESSAGES_ES = [
 ];
 
 const MESSAGES_EN = [
-  'Consulting Statcast...',
+  'Consulting match metrics...',
   'Analyzing historical trends...',
-  'Cross-referencing pitching data...',
-  'Evaluating offensive metrics...',
+  'Cross-referencing xG and shot volume...',
+  'Evaluating attacking and defensive metrics...',
   'Calculating probabilities...',
   'The Oracle is processing...',
   'Verifying lineups...',

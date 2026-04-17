@@ -31,11 +31,6 @@ const mockSoccerProvider = createSoccerProvider({
     return matches.find((match) => String(match.matchId ?? match.fixture?.id) === String(matchId)) || null;
   },
 
-  async getMatchEvents(fixtureId) {
-    console.log(`[soccer-api] getMatchEvents stub for fixture ${fixtureId}`);
-    return [];
-  },
-
   async getMatchLineups(fixtureId) {
     console.log(`[soccer-api] getMatchLineups stub for fixture ${fixtureId}`);
     return [];

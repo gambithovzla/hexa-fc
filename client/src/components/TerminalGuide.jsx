@@ -36,20 +36,20 @@ const CONTENT = {
       sections: [
         {
           heading: 'What is The Oracle?',
-          body: `The Oracle is H.E.X.A.'s core processing system â€” a proprietary algorithmic engine that ingests and cross-references over 26,000 Statcast variables in real time. Built on advanced statistical modeling, it converts raw baseball data into quantified edges and actionable probability signals.`,
+          body: `The Oracle is H.E.X.A.'s core processing system â€” a proprietary football engine that cross-references match context, xG, shot volume, recent form, home/away splits, and market pricing to turn raw match data into quantified edges and actionable probability signals.`,
         },
         {
           heading: 'Standard Mode',
-          body: `Standard Mode delivers rapid analysis by processing the most impactful Statcast variables: exit velocity, xFIP, barrel rate, BABIP, sprint speed, park factors, and current-season weighted metrics. Results are returned in seconds, giving you a sharp, data-driven read on any matchup.`,
+          body: `Standard Mode delivers rapid analysis by processing the most impactful football signals: xG, xGA, shots, shots on target, recent form, goals for/against, and venue context. Results are returned in seconds, giving you a sharp, data-driven read on any matchup.`,
         },
         {
           heading: 'Deep Analytics Mode  Â·  PREMIUM',
-          body: `Deep Analytics Mode unlocks the full power of the Advanced Processing System. It runs multi-layer cross-referencing across historical databases, situational splits (day/night, L/R, home/away), pitcher fatigue curves, lineup construction patterns, umpire tendencies, and weather-adjusted trajectory models. This mode is reserved for Premium users and provides the highest-confidence output the system can generate.`,
+          body: `Deep Analytics Mode unlocks the full power of the Advanced Processing System. It runs multi-layer cross-referencing across historical databases, situational splits, venue effects, lineup news, tactical context, and market movement. This mode is reserved for Premium users and provides the highest-confidence output the system can generate.`,
           highlight: true,
         },
         {
           heading: 'Data Sources',
-          body: `All analysis is grounded in data from EURO FOOTBALL Statcast, the Baseball Savant API, and real-time odds feeds. No guesswork â€” every signal is traceable to a verifiable statistical source.`,
+          body: `All analysis is grounded in football match data, team statistics, and real-time odds feeds. No guesswork â€” every signal is traceable to a verifiable statistical source.`,
         },
       ],
     },
@@ -59,20 +59,20 @@ const CONTENT = {
       sections: [
         {
           heading: 'Â¿QuÃ© es The Oracle?',
-          body: `The Oracle es el sistema central de procesamiento de H.E.X.A. â€” un motor algorÃ­tmico propietario que ingiere y cruza mÃ¡s de 26,000 variables de Statcast en tiempo real. Construido sobre modelos estadÃ­sticos avanzados, convierte datos crudos de bÃ©isbol en ventajas cuantificadas y seÃ±ales de probabilidad accionables.`,
+          body: `The Oracle es el sistema central de procesamiento de H.E.X.A. â€” un motor propietario de fÃºtbol que cruza contexto del partido, xG, volumen de tiro, forma reciente, splits local/visitante y precios de mercado para convertir datos crudos en ventajas cuantificadas y seÃ±ales de probabilidad accionables.`,
         },
         {
           heading: 'Standard Mode',
-          body: `El Modo EstÃ¡ndar entrega anÃ¡lisis rÃ¡pidos procesando las variables Statcast de mayor impacto: velocidad de salida, xFIP, tasa de barril, BABIP, velocidad de carrera, factores de estadio y mÃ©tricas ponderadas de la temporada actual. Los resultados se generan en segundos, brindando una lectura precisa y basada en datos de cualquier enfrentamiento.`,
+          body: `El Modo EstÃ¡ndar entrega anÃ¡lisis rÃ¡pidos procesando las seÃ±ales de fÃºtbol de mayor impacto: xG, xGA, tiros, tiros al arco, forma reciente, goles a favor/en contra y contexto de localÃ­a. Los resultados se generan en segundos y entregan una lectura precisa y basada en datos de cualquier enfrentamiento.`,
         },
         {
           heading: 'Deep Analytics Mode  Â·  PREMIUM',
-          body: `El Modo Deep Analytics desbloquea la potencia completa del Sistema de Procesamiento Avanzado. Ejecuta cruces multicapa sobre bases de datos histÃ³ricas, splits situacionales (dÃ­a/noche, L/D, local/visitante), curvas de fatiga del lanzador, patrones de construcciÃ³n de alineaciÃ³n, tendencias de Ã¡rbitros y modelos de trayectoria ajustados al clima. Este modo es exclusivo para usuarios Premium y genera el output de mayor confianza que el sistema puede producir.`,
+          body: `El Modo Deep Analytics desbloquea la potencia completa del Sistema de Procesamiento Avanzado. Ejecuta cruces multicapa sobre bases de datos histÃ³ricas, splits situacionales, efectos de localÃ­a, noticias de alineaciÃ³n, contexto tÃ¡ctico y movimiento de mercado. Este modo es exclusivo para usuarios Premium y genera el output de mayor confianza que el sistema puede producir.`,
           highlight: true,
         },
         {
           heading: 'Fuentes de Datos',
-          body: `Todo anÃ¡lisis estÃ¡ respaldado por datos de EURO FOOTBALL Statcast, la API de Baseball Savant y feeds de momios en tiempo real. Sin conjeturas â€” cada seÃ±al es rastreable a una fuente estadÃ­stica verificable.`,
+          body: `Todo anÃ¡lisis estÃ¡ respaldado por datos de partidos, estadÃ­sticas de equipos y feeds de momios en tiempo real. Sin conjeturas â€” cada seÃ±al es rastreable a una fuente estadÃ­stica verificable.`,
         },
       ],
     },
@@ -89,7 +89,7 @@ const CONTENT = {
         },
         {
           heading: 'Markets Analyzed',
-          body: `The system evaluates four market dimensions in parallel:\n\nâ€¢ Moneyline â€” outright winner probability vs. implied odds\nâ€¢ Run Line (Â±1.5) â€” spread-adjusted edge calculation\nâ€¢ Over/Under â€” total runs model vs. posted totals\nâ€¢ Player Props â€” stat projection vs. prop line variance`,
+          body: `The system evaluates three football market dimensions in parallel:\n\nâ€¢ 1X2 â€” outright result probability vs. implied odds\nâ€¢ Asian Handicap â€” spread-adjusted edge calculation\nâ€¢ Over/Under Goals â€” total-goals model vs. posted line`,
         },
         {
           heading: 'Expected Value Engine',
@@ -112,7 +112,7 @@ const CONTENT = {
         },
         {
           heading: 'Mercados Analizados',
-          body: `El sistema evalÃºa cuatro dimensiones de mercado en paralelo:\n\nâ€¢ Moneyline â€” probabilidad de ganador vs. momios implÃ­citos\nâ€¢ Run Line (Â±1.5) â€” cÃ¡lculo de ventaja ajustada al spread\nâ€¢ Over/Under â€” modelo de carreras totales vs. totales publicados\nâ€¢ Props de Jugadores â€” proyecciÃ³n estadÃ­stica vs. varianza de lÃ­nea de prop`,
+          body: `El sistema evalÃºa tres dimensiones de mercado de fÃºtbol en paralelo:\n\nâ€¢ 1X2 â€” probabilidad de resultado final vs. momios implÃ­citos\nâ€¢ Asian Handicap â€” cÃ¡lculo de ventaja ajustada al spread\nâ€¢ Over/Under Goals â€” modelo de goles totales vs. la lÃ­nea publicada`,
         },
         {
           heading: 'Motor de Valor Esperado',
@@ -138,7 +138,7 @@ const CONTENT = {
         },
         {
           heading: 'ðŸ”´  Red Flags â€” Danger / Regression Signal',
-          body: `Red Flags indicate one of two conditions:\n\n1. Statistical Regression Risk â€” a player or team is performing significantly above or below their established baseline, suggesting mean reversion is imminent.\n\n2. Imminent Danger â€” a structural disadvantage exists in the matchup (e.g., extreme pitcher/batter split, severe fatigue marker, adverse park factor alignment) that materially reduces the probability of the expected outcome.`,
+          body: `Red Flags indicate one of two conditions:\n\n1. Statistical Regression Risk â€” a team is performing significantly above or below its established baseline, suggesting mean reversion is imminent.\n\n2. Imminent Danger â€” a structural disadvantage exists in the matchup (e.g., severe fatigue, tactical mismatch, or adverse venue context) that materially reduces the probability of the expected outcome.`,
           flagColor: C.red,
         },
         {
@@ -149,7 +149,7 @@ const CONTENT = {
         },
         {
           heading: 'ðŸŸ¢  Green Flags â€” Elite Signal / Clear Edge',
-          body: `Green Flags are the system's highest-confidence markers. They fire when multiple independent data streams converge on the same conclusion:\n\nâ€¢ Strong xStats alignment with actual performance\nâ€¢ Favorable platoon and park factor stacking\nâ€¢ Sharp money movement in the same direction\nâ€¢ Historical precedent supporting the projected outcome\n\nGreen Flags represent the clearest edges the system identifies.`,
+          body: `Green Flags are the system's highest-confidence markers. They fire when multiple independent data streams converge on the same conclusion:\n\nâ€¢ Strong xG alignment with actual performance\nâ€¢ Favorable home/away and tactical context\nâ€¢ Sharp money movement in the same direction\nâ€¢ Historical precedent supporting the projected outcome\n\nGreen Flags represent the clearest edges the system identifies.`,
           flagColor: C.green,
           highlight: true,
         },
@@ -165,12 +165,12 @@ const CONTENT = {
         },
         {
           heading: 'ðŸ”´  Banderas Rojas â€” Peligro / SeÃ±al de RegresiÃ³n',
-          body: `Las Banderas Rojas indican una de dos condiciones:\n\n1. Riesgo de RegresiÃ³n EstadÃ­stica â€” un jugador o equipo estÃ¡ rindiendo significativamente por encima o por debajo de su lÃ­nea base establecida, sugiriendo que la regresiÃ³n a la media es inminente.\n\n2. Peligro Inminente â€” existe una desventaja estructural en el enfrentamiento (ej. split extremo lanzador/bateador, marcador severo de fatiga, alineaciÃ³n adversa de factor de estadio) que reduce materialmente la probabilidad del resultado esperado.`,
+          body: `Las Banderas Rojas indican una de dos condiciones:\n\n1. Riesgo de RegresiÃ³n EstadÃ­stica â€” un equipo estÃ¡ rindiendo significativamente por encima o por debajo de su lÃ­nea base establecida, sugiriendo que la regresiÃ³n a la media es inminente.\n\n2. Peligro Inminente â€” existe una desventaja estructural en el enfrentamiento (ej. fatiga severa, desajuste tÃ¡ctico o contexto adverso de localÃ­a) que reduce materialmente la probabilidad del resultado esperado.`,
           flagColor: C.red,
         },
         {
           heading: 'ðŸŸ¡  Banderas Ãmbar â€” PrecauciÃ³n / Volatilidad',
-          body: `Las Banderas Ãmbar seÃ±alan incertidumbre elevada en la proyecciÃ³n del modelo. Disparadores comunes incluyen:\n\nâ€¢ Alta varianza en la ventana de muestra reciente\nâ€¢ SeÃ±ales conflictivas entre fuentes de datos\nâ€¢ Condiciones climÃ¡ticas con impacto significativo en el entorno de carreras\nâ€¢ Volatilidad en la alineaciÃ³n (bajas de Ãºltimo momento, cambios inesperados en el orden al bate)\n\nLas Banderas Ãmbar no invalidan un pick â€” indican que el tamaÃ±o de posiciÃ³n debe ser conservador.`,
+          body: `Las Banderas Ãmbar seÃ±alan incertidumbre elevada en la proyecciÃ³n del modelo. Disparadores comunes incluyen:\n\nâ€¢ Alta varianza en la ventana de muestra reciente\nâ€¢ SeÃ±ales conflictivas entre fuentes de datos\nâ€¢ Condiciones climÃ¡ticas con impacto significativo en el partido\nâ€¢ Volatilidad en la alineaciÃ³n (bajas de Ãºltimo momento, cambios inesperados en el once)\n\nLas Banderas Ãmbar no invalidan un pick â€” indican que el tamaÃ±o de posiciÃ³n debe ser conservador.`,
           flagColor: C.amber,
         },
         {

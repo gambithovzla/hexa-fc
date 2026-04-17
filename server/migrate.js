@@ -100,6 +100,7 @@ export async function runMigrations() {
         home_team            VARCHAR(100),
         away_team            VARCHAR(100),
         moneyline_home       INTEGER,
+        moneyline_draw       INTEGER,
         moneyline_away       INTEGER,
         run_line_home        DECIMAL(3,1),
         run_line_home_price  INTEGER,
@@ -115,6 +116,8 @@ export async function runMigrations() {
     await client.query(`
       CREATE INDEX IF NOT EXISTS idx_snapshots_game_date ON odds_snapshots(game_id, game_date)
     `);
+
+    await client.query(`ALTER TABLE odds_snapshots ADD COLUMN IF NOT EXISTS moneyline_draw INTEGER`);
 
     // ── pending_credits (BMC webhook — credits for users not yet registered) ───
     await client.query(`

@@ -1,6 +1,6 @@
 /**
  * AnalysisPanel.jsx
- * Orchestrates bet controls, API calls, and result display for H.E.X.A. V4.
+ * Orchestrates bet controls, API calls, and result display for H.E.X.A. F.C.
  *
  * Props:
  *   selectedGames  — array of game objects (1 for single, N for parlay)
@@ -27,8 +27,8 @@ const L = {
       moneyline:  '1X2 (Match Odds)',
       runline:    'Asian Handicap',
       totals:     'Over/Under Goals',
-      pitcherprops:'🔥 Pitcher Props (Strikeouts)',
-      batterprops: '🦇 Batter Props (HR, Hits)',
+      legacyMarketA: 'Legacy Market A',
+      legacyMarketB: 'Legacy Market B',
     },
     modelSelect: {
       label:   'Analysis Model',
@@ -42,14 +42,14 @@ const L = {
     retry:        'Retry',
     error:        'Analysis failed',
     emptyHint: {
-      single:  'Select a game on the left to begin.',
-      parlay:  'Select 2–6 games on the left to build your parlay.',
+      single:  'Select a match on the left to begin.',
+      parlay:  'Select 2–6 matches on the left to build your parlay.',
     },
     readyHint:    'Configure your options and run the Oracle.',
     parseError:   'Analysis could not be processed. Please retry.',
     lineupDialog: {
       title:    '⚠️ Unconfirmed Lineups',
-      body:     (n, total) => `${n} of ${total} game${total > 1 ? 's' : ''} have unconfirmed lineups. Analysis will be based on probable starters and team tendencies.`,
+      body:     (n, total) => `${n} of ${total} match${total > 1 ? 'es' : ''} have unconfirmed lineups. Analysis will lean on projected lineups and team-level signals.`,
       continue: 'Continue Anyway',
       cancel:   'Cancel',
     },
@@ -66,8 +66,8 @@ const L = {
       moneyline:  '1X2 (Match Odds)',
       runline:    'Asian Handicap',
       totals:     'Over/Under Goals',
-      pitcherprops:'🔥 Pitcher Props (Ponches)',
-      batterprops: '🦇 Batter Props (HR, Hits)',
+      legacyMarketA: 'Mercado Legacy A',
+      legacyMarketB: 'Mercado Legacy B',
     },
     modelSelect: {
       label:   'Modelo de Análisis',
@@ -81,14 +81,14 @@ const L = {
     retry:        'Reintentar',
     error:        'Error en el análisis',
     emptyHint: {
-      single:  'Selecciona un juego a la izquierda para comenzar.',
-      parlay:  'Selecciona 2–6 juegos a la izquierda para tu parlay.',
+      single:  'Selecciona un partido a la izquierda para comenzar.',
+      parlay:  'Selecciona 2–6 partidos a la izquierda para tu parlay.',
     },
     readyHint:    'Configura las opciones y ejecuta el Oráculo.',
     parseError:   'No se pudo procesar el análisis. Por favor, reintenta.',
     lineupDialog: {
       title:    '⚠️ Alineación no confirmada',
-      body:     (n, total) => `${n} de ${total} partido${total > 1 ? 's' : ''} no tiene${total > 1 ? 'n' : ''} alineación confirmada. El análisis se basará en lanzadores probables y tendencias del equipo.`,
+      body:     (n, total) => `${n} de ${total} partido${total > 1 ? 's' : ''} no tiene${total > 1 ? 'n' : ''} alineación confirmada. El análisis se apoyará en alineaciones probables y señales colectivas del equipo.`,
       continue: 'Continuar de todas formas',
       cancel:   'Cancelar',
     },
@@ -277,12 +277,10 @@ function MatchupHeader({ games, mode }) {
 
 function BetTypeSelect({ value, onChange, t }) {
   const options = [
-    { value: 'all',         label: t.betType.all         },
-    { value: 'moneyline',   label: t.betType.moneyline   },
-    { value: 'runline',     label: t.betType.runline      },
-    { value: 'totals',      label: t.betType.totals       },
-    { value: 'Pitcher Props', label: t.betType.pitcherprops },
-    { value: 'Batter Props',  label: t.betType.batterprops  },
+    { value: 'all',             label: t.betType.all       },
+    { value: '1x2',             label: t.betType.moneyline },
+    { value: 'asian_handicap',  label: t.betType.runline   },
+    { value: 'over_under',      label: t.betType.totals    },
   ];
 
   return (
@@ -954,6 +952,11 @@ export default function AnalysisPanel({
       (obj.master_prediction || obj.parlay || obj.games || obj.safe_pick ||
        (obj.mode === 'safe_multi' && Array.isArray(obj.results)));
 
+    const withOdds = (obj) => {
+      const responseOdds = response?.odds ?? response?.analysis?.odds ?? null;
+      return obj && responseOdds ? { ...obj, odds: responseOdds } : obj;
+    };
+
     const tryParse = (str) => {
       try {
         let cleaned = str.replace(/```json/gi, '').replace(/```/g, '').trim();
@@ -961,7 +964,7 @@ export default function AnalysisPanel({
         const last  = cleaned.lastIndexOf('}');
         if (first !== -1 && last > first) {
           const parsed = JSON.parse(cleaned.substring(first, last + 1));
-          if (isHexa(parsed)) return parsed;
+          if (isHexa(parsed)) return withOdds(parsed);
         }
       } catch { /* fall through */ }
       return null;
@@ -977,10 +980,10 @@ export default function AnalysisPanel({
 
     for (const c of candidates) {
       if (!c) continue;
-      if (isHexa(c))               return c;
+      if (isHexa(c))               return withOdds(c);
       if (typeof c === 'string') {
         const parsed = tryParse(c);
-        if (parsed)                return parsed;
+        if (parsed)                return withOdds(parsed);
       }
     }
 
@@ -988,7 +991,7 @@ export default function AnalysisPanel({
     const raw = response?.rawText ?? response?.analysis?.rawText;
     if (raw && typeof raw === 'string') {
       const parsed = tryParse(raw);
-      if (parsed) return parsed;
+      if (parsed) return withOdds(parsed);
     }
 
     return null;

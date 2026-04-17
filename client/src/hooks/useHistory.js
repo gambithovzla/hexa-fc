@@ -45,6 +45,75 @@ function save(entries) {
 
 // ── Payload extraction helpers ────────────────────────────────────────────────
 
+function normalizePickText(value) {
+  return String(value ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
+function selectionMentions(selection, candidate) {
+  const normalizedSelection = normalizePickText(selection);
+  const normalizedCandidate = normalizePickText(candidate);
+  if (!normalizedSelection || !normalizedCandidate) return false;
+  if (normalizedSelection.includes(normalizedCandidate)) return true;
+
+  return normalizedCandidate
+    .split(/[^a-z0-9]+/)
+    .filter((token) => token.length >= 3)
+    .some((token) => normalizedSelection.includes(token));
+}
+
+function resolvePickSide(selection, matchup, oddsData, payload) {
+  const normalizedSelection = normalizePickText(selection);
+  if (!normalizedSelection) return null;
+
+  if (/\b(draw|empate|tie)\b/.test(normalizedSelection)) return 'draw';
+  if (/\b(home|local)\b/.test(normalizedSelection)) return 'home';
+  if (/\b(away|visitor|visitante)\b/.test(normalizedSelection)) return 'away';
+
+  const homeName = oddsData?.homeTeam ?? payload?.games?.[0]?.teams?.home?.name ?? '';
+  const awayName = oddsData?.awayTeam ?? payload?.games?.[0]?.teams?.away?.name ?? '';
+  if (selectionMentions(selection, homeName)) return 'home';
+  if (selectionMentions(selection, awayName)) return 'away';
+
+  const [awayToken = '', homeToken = ''] = String(matchup ?? '').split(/\s+(?:@|vs\.?|at|-)\s+/i);
+  if (selectionMentions(selection, awayToken)) return 'away';
+  if (selectionMentions(selection, homeToken)) return 'home';
+
+  return null;
+}
+
+function resolveFootballOdds(selection, matchup, oddsData, payload) {
+  if (!oddsData) return null;
+
+  const normalizedSelection = normalizePickText(selection);
+  const ml = oddsData.moneyline;
+  const rl = oddsData.runLine;
+  const ou = oddsData.overUnder;
+
+  if (/^(over|o\b|mas de|alta)/.test(normalizedSelection)) return ou?.overPrice ?? null;
+  if (/^(under|u\b|menos de|baja)/.test(normalizedSelection)) return ou?.underPrice ?? null;
+
+  const side = resolvePickSide(selection, matchup, oddsData, payload);
+  const isAsianHandicap =
+    /\b(asian handicap|handicap|ah)\b/.test(normalizedSelection) ||
+    /\s[+-]\d+(\.\d+)?\b/.test(normalizedSelection);
+
+  if (isAsianHandicap) {
+    if (side === 'home') return rl?.home?.price ?? null;
+    if (side === 'away') return rl?.away?.price ?? null;
+    return rl?.home?.price ?? rl?.away?.price ?? null;
+  }
+
+  if (side === 'draw') return ml?.draw ?? null;
+  if (side === 'away') return ml?.away ?? null;
+  if (side === 'home') return ml?.home ?? null;
+
+  return ml?.home ?? ml?.away ?? ml?.draw ?? null;
+}
+
 function extractMatchup(payload) {
   // Direct override from safe_multi or batch scan
   if (payload._matchupOverride) return payload._matchupOverride;
@@ -187,26 +256,7 @@ export default function useHistory() {
     let oddsDetails = null;
     const oddsData = payload.odds;
     if (oddsData) {
-      const pickLower = (pick ?? '').toLowerCase();
-      const ml = oddsData.moneyline;
-      const rl = oddsData.runLine;
-      const ou = oddsData.overUnder;
-
-      if (pickLower.includes('over') && ou?.overPrice) {
-        oddsAtPick = ou.overPrice;
-      } else if (pickLower.includes('under') && ou?.underPrice) {
-        oddsAtPick = ou.underPrice;
-      } else if (pickLower.includes('run line') || pickLower.includes('línea')) {
-        oddsAtPick = rl?.home?.price ?? rl?.away?.price ?? null;
-      } else if (ml) {
-        // Moneyline: determine home vs away from matchup
-        const awayName = (payload.games?.[0]?.teams?.away?.name ?? '').toLowerCase();
-        if (pickLower.includes(awayName.split(' ').pop())) {
-          oddsAtPick = ml.away;
-        } else {
-          oddsAtPick = ml.home;
-        }
-      }
+      oddsAtPick = resolveFootballOdds(pick, matchup, oddsData, payload);
       oddsDetails = oddsData;
     }
 
